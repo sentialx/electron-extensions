@@ -3,17 +3,16 @@ import {
   app,
   WebContents,
   ipcMain,
-  IpcMessageEvent,
-} from 'electron';
-import * as fs from 'fs';
-import { format } from 'url';
-import { resolve } from 'path';
-import { promisify } from 'util';
+  IpcMessageEvent
+} from "electron";
+import * as fs from "fs";
+import { format } from "url";
+import { resolve } from "path";
+import { promisify } from "util";
 
-import { getPath } from '~/shared/utils/paths';
-import { Extension, StorageArea } from './models';
-import { IpcExtension } from '~/shared/models';
-import { appWindow } from '.';
+import { getPath } from "~/shared/utils/paths";
+import { Extension, StorageArea } from "./models";
+import { IpcExtension } from "~/shared/models";
 
 const readFile = promisify(fs.readFile);
 const readdir = promisify(fs.readdir);
@@ -24,7 +23,7 @@ export const extensions: { [key: string]: Extension } = {};
 
 export const getIpcExtension = (id: string): IpcExtension => {
   const ipcExtension: Extension = {
-    ...extensions[id],
+    ...extensions[id]
   };
 
   delete ipcExtension.databases;
@@ -39,56 +38,56 @@ export const startBackgroundPage = async (extension: Extension) => {
     const { background } = manifest;
     const { page, scripts } = background;
 
-    let html = Buffer.from('');
+    let html = Buffer.from("");
     let fileName: string;
 
     if (page) {
       fileName = page;
       html = await readFile(resolve(path, page));
     } else if (scripts) {
-      fileName = 'generated.html';
+      fileName = "generated.html";
       html = Buffer.from(
         `<html>
           <body>${scripts
             .map(script => `<script src="${script}"></script>`)
-            .join('')}
+            .join("")}
           </body>
         </html>`,
-        'utf8',
+        "utf8"
       );
     }
 
     const contents: WebContents = (webContents as any).create({
-      partition: 'persist:wexond_extension',
+      partition: "persist:wexond_extension",
       isBackgroundPage: true,
-      commandLineSwitches: ['--background-page'],
+      commandLineSwitches: ["--background-page"],
       preload: `${app.getAppPath()}/build/background-preload.js`,
       webPreferences: {
         webSecurity: false,
         nodeIntegration: false,
-        contextIsolation: false,
-      },
+        contextIsolation: false
+      }
     });
 
     extension.backgroundPage = {
       html,
       fileName,
-      webContentsId: contents.id,
+      webContentsId: contents.id
     };
 
     contents.loadURL(
       format({
-        protocol: 'wexond-extension',
+        protocol: "wexond-extension",
         slashes: true,
         hostname: id,
-        pathname: fileName,
-      }),
+        pathname: fileName
+      })
     );
   }
 };
 
 export const loadExtensions = async () => {
-  const extensionsPath = getPath('extensions');
+  const extensionsPath = getPath("extensions");
   const files = await readdir(extensionsPath);
 
   for (const dir of files) {
@@ -96,11 +95,11 @@ export const loadExtensions = async () => {
     const stats = await stat(extensionPath);
 
     if (stats.isDirectory()) {
-      const manifestPath = resolve(extensionPath, 'manifest.json');
+      const manifestPath = resolve(extensionPath, "manifest.json");
 
       if (await exists(manifestPath)) {
         const manifest: chrome.runtime.Manifest = JSON.parse(
-          await readFile(manifestPath, 'utf8'),
+          await readFile(manifestPath, "utf8")
         );
 
         const id = dir.toLowerCase();
@@ -109,34 +108,34 @@ export const loadExtensions = async () => {
           return;
         }
 
-        const storagePath = getPath('storage/extensions', id);
-        const local = new StorageArea(resolve(storagePath, 'local'));
-        const sync = new StorageArea(resolve(storagePath, 'sync'));
-        const managed = new StorageArea(resolve(storagePath, 'managed'));
+        const storagePath = getPath("storage/extensions", id);
+        const local = new StorageArea(resolve(storagePath, "local"));
+        const sync = new StorageArea(resolve(storagePath, "sync"));
+        const managed = new StorageArea(resolve(storagePath, "managed"));
 
         const extension: Extension = {
           manifest,
           alarms: [],
           databases: { local, sync, managed },
           path: extensionPath,
-          id,
+          id
         };
 
         extensions[id] = extension;
 
-        if (typeof manifest.default_locale === 'string') {
+        if (typeof manifest.default_locale === "string") {
           const defaultLocalePath = resolve(
             extensionPath,
-            '_locales',
-            manifest.default_locale,
+            "_locales",
+            manifest.default_locale
           );
 
           if (await exists(defaultLocalePath)) {
-            const messagesPath = resolve(defaultLocalePath, 'messages.json');
+            const messagesPath = resolve(defaultLocalePath, "messages.json");
             const stats = await stat(messagesPath);
 
             if ((await exists(messagesPath)) && !stats.isDirectory()) {
-              const data = await readFile(messagesPath, 'utf8');
+              const data = await readFile(messagesPath, "utf8");
               const locale = JSON.parse(data);
 
               extension.locale = locale;
@@ -150,11 +149,11 @@ export const loadExtensions = async () => {
   }
 };
 
-ipcMain.on('get-extension', (e: IpcMessageEvent, id: string) => {
+ipcMain.on("get-extension", (e: IpcMessageEvent, id: string) => {
   e.returnValue = getIpcExtension(id);
 });
 
-ipcMain.on('get-extensions', (e: IpcMessageEvent) => {
+ipcMain.on("get-extensions", (e: IpcMessageEvent) => {
   const list = { ...extensions };
 
   for (const key in list) {
@@ -164,39 +163,39 @@ ipcMain.on('get-extensions', (e: IpcMessageEvent) => {
   e.returnValue = list;
 });
 
-ipcMain.on('api-tabs-query', (e: Electron.IpcMessageEvent) => {
-  appWindow.webContents.send('api-tabs-query', e.sender.id);
+ipcMain.on("api-tabs-query", (e: Electron.IpcMessageEvent) => {
+  appWindow.webContents.send("api-tabs-query", e.sender.id);
 });
 
 ipcMain.on(
-  'api-tabs-create',
+  "api-tabs-create",
   (e: IpcMessageEvent, data: chrome.tabs.CreateProperties) => {
-    appWindow.webContents.send('api-tabs-create', data, e.sender.id);
-  },
+    appWindow.webContents.send("api-tabs-create", data, e.sender.id);
+  }
 );
 
 ipcMain.on(
-  'api-tabs-insertCSS',
+  "api-tabs-insertCSS",
   (e: IpcMessageEvent, tabId: number, details: chrome.tabs.InjectDetails) => {
     const view = appWindow.viewManager.views[tabId];
 
     if (view) {
       view.webContents.insertCSS(details.code);
-      e.sender.send('api-tabs-insertCSS');
+      e.sender.send("api-tabs-insertCSS");
     }
-  },
+  }
 );
 
-ipcMain.on('api-tabs-executeScript', (e: IpcMessageEvent, data: any) => {
+ipcMain.on("api-tabs-executeScript", (e: IpcMessageEvent, data: any) => {
   const { tabId } = data;
   const view = appWindow.viewManager.views[tabId];
 
   if (view) {
-    view.webContents.send('execute-script-isolated', data, e.sender.id);
+    view.webContents.send("execute-script-isolated", data, e.sender.id);
   }
 });
 
-ipcMain.on('api-runtime-reload', (e: IpcMessageEvent, extensionId: string) => {
+ipcMain.on("api-runtime-reload", (e: IpcMessageEvent, extensionId: string) => {
   const { backgroundPage } = extensions[extensionId];
 
   if (backgroundPage) {
@@ -206,7 +205,7 @@ ipcMain.on('api-runtime-reload', (e: IpcMessageEvent, extensionId: string) => {
 });
 
 ipcMain.on(
-  'api-runtime-connect',
+  "api-runtime-connect",
   async (e: IpcMessageEvent, { extensionId, portId, sender, name }: any) => {
     const { backgroundPage } = extensions[extensionId];
 
@@ -214,17 +213,17 @@ ipcMain.on(
       const view = webContents.fromId(backgroundPage.webContentsId);
 
       if (view) {
-        view.send('api-runtime-connect', {
+        view.send("api-runtime-connect", {
           portId,
           sender,
-          name,
+          name
         });
       }
     }
-  },
+  }
 );
 
-ipcMain.on('api-runtime-sendMessage', async (e: IpcMessageEvent, data: any) => {
+ipcMain.on("api-runtime-sendMessage", async (e: IpcMessageEvent, data: any) => {
   const { extensionId } = data;
   const { backgroundPage } = extensions[extensionId];
 
@@ -232,13 +231,13 @@ ipcMain.on('api-runtime-sendMessage', async (e: IpcMessageEvent, data: any) => {
     const view = webContents.fromId(backgroundPage.webContentsId);
 
     if (view) {
-      view.send('api-runtime-sendMessage', data, e.sender.id);
+      view.send("api-runtime-sendMessage", data, e.sender.id);
     }
   }
 });
 
 ipcMain.on(
-  'api-port-postMessage',
+  "api-port-postMessage",
   (e: IpcMessageEvent, { portId, msg }: any) => {
     Object.keys(extensions).forEach(key => {
       const { backgroundPage } = extensions[key];
@@ -255,18 +254,18 @@ ipcMain.on(
         view.webContents.send(`api-port-postMessage-${portId}`, msg);
       }
     }
-  },
+  }
 );
 
 ipcMain.on(
-  'api-storage-operation',
+  "api-storage-operation",
   (e: IpcMessageEvent, { extensionId, id, area, type, arg }: any) => {
     const { databases } = extensions[extensionId];
 
     const contents = webContents.fromId(e.sender.id);
     const msg = `api-storage-operation-${id}`;
 
-    if (type === 'get') {
+    if (type === "get") {
       databases[area].get(arg, d => {
         for (const key in d) {
           if (Buffer.isBuffer(d[key])) {
@@ -275,27 +274,27 @@ ipcMain.on(
         }
         contents.send(msg, d);
       });
-    } else if (type === 'set') {
+    } else if (type === "set") {
       databases[area].set(arg, () => {
         contents.send(msg);
       });
-    } else if (type === 'clear') {
+    } else if (type === "clear") {
       databases[area].clear(() => {
         contents.send(msg);
       });
-    } else if (type === 'remove') {
+    } else if (type === "remove") {
       databases[area].set(arg, () => {
         contents.send(msg);
       });
     }
-  },
+  }
 );
 
-ipcMain.on('api-alarms-operation', (e: IpcMessageEvent, data: any) => {
+ipcMain.on("api-alarms-operation", (e: IpcMessageEvent, data: any) => {
   const { extensionId, type } = data;
   const contents = webContents.fromId(e.sender.id);
 
-  if (type === 'create') {
+  if (type === "create") {
     const extension = extensions[extensionId];
     const { alarms } = extension;
 
@@ -314,7 +313,7 @@ ipcMain.on('api-alarms-operation', (e: IpcMessageEvent, data: any) => {
     if (alarmInfo.delayInMinutes != null) {
       if (alarmInfo.delayInMinutes < 1) {
         return console.error(
-          `Alarm delay is less than minimum of 1 minutes. In released .crx, alarm "${name}" will fire in approximately 1 minutes.`,
+          `Alarm delay is less than minimum of 1 minutes. In released .crx, alarm "${name}" will fire in approximately 1 minutes.`
         );
       }
 
@@ -324,39 +323,39 @@ ipcMain.on('api-alarms-operation', (e: IpcMessageEvent, data: any) => {
     const alarm: chrome.alarms.Alarm = {
       periodInMinutes: alarmInfo.periodInMinutes,
       scheduledTime,
-      name,
+      name
     };
 
     alarms.push(alarm);
 
     if (!alarm.periodInMinutes) {
       setTimeout(() => {
-        contents.send('api-emit-event-alarms-onAlarm', alarm);
+        contents.send("api-emit-event-alarms-onAlarm", alarm);
       }, alarm.scheduledTime - Date.now());
     }
   }
 });
 
 ipcMain.on(
-  'api-browserAction-setBadgeText',
+  "api-browserAction-setBadgeText",
   (e: IpcMessageEvent, ...args: any[]) => {
     appWindow.webContents.send(
-      'api-browserAction-setBadgeText',
+      "api-browserAction-setBadgeText",
       e.sender.id,
-      ...args,
+      ...args
     );
-  },
+  }
 );
 
 ipcMain.on(
-  'send-to-all-extensions',
+  "send-to-all-extensions",
   (e: IpcMessageEvent, msg: string, ...args: any[]) => {
     sendToAllExtensions(msg, ...args);
     appWindow.viewManager.sendToAll(msg, ...args);
-  },
+  }
 );
 
-ipcMain.on('emit-tabs-event', (e: any, name: string, ...data: any[]) => {
+ipcMain.on("emit-tabs-event", (e: any, name: string, ...data: any[]) => {
   appWindow.viewManager.sendToAll(`api-emit-event-tabs-${name}`, ...data);
   sendToAllExtensions(`api-emit-event-tabs-${name}`, ...data);
 });

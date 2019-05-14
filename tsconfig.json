@@ -13,7 +13,7 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "lib": ["esnext"],
+    "lib": ["esnext", "dom"],
     "experimentalDecorators": true,
 
     "baseUrl": "./",

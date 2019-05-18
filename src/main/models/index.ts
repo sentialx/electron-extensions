@@ -1,3 +1,3 @@
-export * from "./extension";
-export * from "./storage-area";
-export * from "./main-options";
+export * from './extension';
+export * from './storage-area';
+export * from './main-options';

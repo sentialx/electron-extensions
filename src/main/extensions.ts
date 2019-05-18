@@ -12,7 +12,7 @@ import { promisify } from 'util';
 
 import { getPath } from '~/shared/utils/paths';
 import { Extension, StorageArea } from './models';
-import { IpcExtension, BackgroundPage } from '~/shared/models';
+import { IpcExtension } from '~/shared/models';
 
 const readFile = promisify(fs.readFile);
 const readdir = promisify(fs.readdir);
@@ -63,6 +63,7 @@ export const startBackgroundPage = async (extension: Extension) => {
       preload: `${app.getAppPath()}/build/background-preload.js`,
       enableRemoteModule: false,
       sandbox: true,
+      commandLineSwitches: ['--background-page'],
       webPreferences: {
         nodeIntegration: false,
       },
@@ -178,11 +179,10 @@ ipcMain.on(
 ipcMain.on(
   'api-tabs-insertCSS',
   (e: IpcMessageEvent, tabId: number, details: chrome.tabs.InjectDetails) => {
-    // TODO: pass webContents
-    const webContents: any = null;
+    const contents = webContents.fromId(tabId);
 
-    if (webContents) {
-      webContents.insertCSS(details.code);
+    if (contents) {
+      contents.insertCSS(details.code);
       e.sender.send('api-tabs-insertCSS');
     }
   },
@@ -190,12 +190,10 @@ ipcMain.on(
 
 ipcMain.on('api-tabs-executeScript', (e: IpcMessageEvent, data: any) => {
   const { tabId } = data;
+  const contents = webContents.fromId(tabId);
 
-  // TODO: pass webContents
-  const webContents: any = null;
-
-  if (webContents) {
-    webContents.send('execute-script-isolated', data, e.sender.id);
+  if (contents) {
+    contents.send('execute-script-isolated', data, e.sender.id);
   }
 });
 
@@ -339,7 +337,7 @@ ipcMain.on(
   'api-browserAction-setBadgeText',
   (e: IpcMessageEvent, ...args: any[]) => {
     /*
-    TODO: 
+    TODO:
     appWindow.webContents.send(
       'api-browserAction-setBadgeText',
       e.sender.id,

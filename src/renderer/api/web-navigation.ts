@@ -1,4 +1,4 @@
-import { IpcEvent } from '..';
+import { IpcEvent } from '.';
 
 // https://developer.chrome.com/extensions/webNavigation
 

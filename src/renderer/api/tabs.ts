@@ -1,8 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { API } from '.';
-import { IpcEvent } from '..';
+import { API, IpcEvent } from '.';
 import { makeId } from '~/shared/utils/string';
 
 let api: API;

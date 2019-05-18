@@ -5,6 +5,7 @@ import { getAPI } from '~/shared/utils/extensions';
 import { format, parse } from 'url';
 import { IpcExtension } from '~/shared/models';
 import { runInThisContext } from 'vm';
+import { matchesPattern } from '~/shared/utils/url';
 
 const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
   'get-extensions',
@@ -53,21 +54,7 @@ ipcRenderer.on(
   },
 );
 
-const tabId = parseInt(
-  process.argv.find(x => x.startsWith('--tab-id=')).split('=')[1],
-  10,
-);
-
-const goBack = () => {
-  ipcRenderer.send('browserview-call', { tabId, scope: 'webContents.goBack' });
-};
-
-const goForward = () => {
-  ipcRenderer.send('browserview-call', {
-    tabId,
-    scope: 'webContents.goForward',
-  });
-};
+const tabId = remote.getCurrentWebContents().id;
 
 const injectChromeApi = (extension: IpcExtension, worldId: number) => {
   const context = getAPI(extension, tabId);

@@ -1,6 +1,6 @@
 import { ipcRenderer, remote } from 'electron';
 import { IpcExtension } from '../models';
-import { Port, API } from '~/extensions';
+import { API, Port } from '~/renderer/api';
 
 export const getAPI = (extension: IpcExtension, tabId: number = null) => {
   const api = new API(extension, tabId);
@@ -26,8 +26,6 @@ export const getAPI = (extension: IpcExtension, tabId: number = null) => {
       };
 
       api.runtime.onMessage.emit(message, sender, sendResponse);
-      const port = new Port(portId, name, sender);
-      api.runtime.onConnect.emit(port);
     },
   );
 

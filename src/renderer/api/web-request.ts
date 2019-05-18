@@ -1,4 +1,4 @@
-import { WebRequestEvent } from '..';
+import { WebRequestEvent } from '.';
 
 export class WebRequest {
   public ResourceType = {

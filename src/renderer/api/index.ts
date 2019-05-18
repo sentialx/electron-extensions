@@ -9,6 +9,11 @@ import { I18n } from './i18n';
 import { BrowserAction } from './browser-action';
 import { Storage } from './storage';
 
+export * from './events/api-event';
+export * from './events/ipc-event';
+export * from './events/web-request-event';
+export * from './models/port';
+
 // https://developer.chrome.com/extensions/api_index
 
 export class API {

@@ -1,24 +1,8 @@
-import { ipcMain, session, webContents, app, IpcMessageEvent } from 'electron';
+import { ipcMain, session, webContents } from 'electron';
 import { makeId } from '~/shared/utils/string';
-import { AppWindow } from '../app-window';
 import { matchesPattern } from '~/shared/utils/url';
-import { existsSync, readFile, writeFile, mkdirSync } from 'fs';
-import { resolve } from 'path';
-import { getPath } from '~/shared/utils/paths';
 
 const eventListeners: any = {};
-
-const getTabByWebContentsId = (window: AppWindow, id: number) => {
-  for (const key in window.viewManager.views) {
-    const view = window.viewManager.views[key];
-
-    if (view.webContents.id === id) {
-      return view.tabId;
-    }
-  }
-
-  return -1;
-};
 
 const getRequestType = (type: string): any => {
   if (type === 'mainFrame') return 'main_frame';
@@ -27,7 +11,7 @@ const getRequestType = (type: string): any => {
   return type;
 };
 
-const getDetails = (details: any, window: AppWindow, isTabRelated: boolean) => {
+const getDetails = (details: any, isTabRelated: boolean) => {
   const newDetails = {
     ...details,
     requestId: details.id.toString(),
@@ -35,9 +19,7 @@ const getDetails = (details: any, window: AppWindow, isTabRelated: boolean) => {
     parentFrameId: -1,
     type: getRequestType(details.resourceType),
     timeStamp: Date.now(),
-    tabId: isTabRelated
-      ? getTabByWebContentsId(window, details.webContentsId)
-      : -1,
+    tabId: isTabRelated ? details.webContentsId : -1,
     error: '',
   };
 
@@ -161,7 +143,7 @@ const interceptRequest = (
   }
 };
 
-export const runWebRequestService = (window: AppWindow) => {
+export const runWebRequestService = () => {
   const webviewRequest = session.fromPartition('persist:view').webRequest;
 
   // onBeforeSendHeaders
@@ -170,7 +152,7 @@ export const runWebRequestService = (window: AppWindow) => {
     const requestHeaders = objectToArray(details.requestHeaders);
 
     const newDetails: any = {
-      ...getDetails(details, window, true),
+      ...getDetails(details, true),
       requestHeaders,
     };
 
@@ -178,23 +160,18 @@ export const runWebRequestService = (window: AppWindow) => {
   };
 
   webviewRequest.onBeforeSendHeaders(async (details: any, callback: any) => {
-    details.requestHeaders['User-Agent'] = USER_AGENT;
-    details.requestHeaders['DNT'] = '1';
-
     await onBeforeSendHeaders(details, callback);
   });
 
   // onBeforeRequest
 
   const onBeforeRequest = async (details: any, callback: any) => {
-    const newDetails: any = getDetails(details, window, true);
+    const newDetails: any = getDetails(details, true);
     interceptRequest('onBeforeRequest', newDetails, callback);
   };
 
   webviewRequest.onBeforeRequest(
     async (details: Electron.OnBeforeRequestDetails, callback: any) => {
-      const tabId = getTabByWebContentsId(window, details.webContentsId);
-
       await onBeforeRequest(details, callback);
     },
   );
@@ -205,7 +182,7 @@ export const runWebRequestService = (window: AppWindow) => {
     const responseHeaders = objectToArray(details.responseHeaders);
 
     const newDetails: any = {
-      ...getDetails(details, window, true),
+      ...getDetails(details, true),
       responseHeaders,
     };
 
@@ -214,31 +191,7 @@ export const runWebRequestService = (window: AppWindow) => {
 
   webviewRequest.onHeadersReceived(
     async (details: Electron.OnHeadersReceivedDetails, callback: any) => {
-      updateResponseHeadersWithCSP(
-        {
-          url: details.url,
-          type: details.resourceType as any,
-          tabId: getTabByWebContentsId(window, details.webContentsId),
-          method: details.method,
-          statusCode: details.statusCode,
-          statusLine: details.statusLine,
-          requestId: details.id.toString(),
-          frameId: 0,
-          parentFrameId: -1,
-          timeStamp: details.timestamp,
-        },
-        engine.getCSPDirectives(
-          makeRequest(
-            {
-              sourceUrl: details.url,
-              type: details.resourceType,
-              url: details.url,
-            },
-            parse,
-          ),
-        ),
-      ),
-        await onHeadersReceived(details, callback);
+      await onHeadersReceived(details, callback);
     },
   );
 
@@ -247,7 +200,7 @@ export const runWebRequestService = (window: AppWindow) => {
   const onSendHeaders = async (details: any) => {
     const requestHeaders = objectToArray(details.requestHeaders);
     const newDetails: any = {
-      ...getDetails(details, window, true),
+      ...getDetails(details, true),
       requestHeaders,
     };
 
@@ -261,7 +214,7 @@ export const runWebRequestService = (window: AppWindow) => {
   // onCompleted
 
   const onCompleted = async (details: any) => {
-    const newDetails: any = getDetails(details, window, true);
+    const newDetails: any = getDetails(details, true);
     interceptRequest('onCompleted', newDetails);
   };
 
@@ -272,7 +225,7 @@ export const runWebRequestService = (window: AppWindow) => {
   // onErrorOccurred
 
   const onErrorOccurred = async (details: any) => {
-    const newDetails: any = getDetails(details, window, true);
+    const newDetails: any = getDetails(details, true);
     interceptRequest('onErrorOccurred', newDetails);
   };
 

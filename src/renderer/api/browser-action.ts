@@ -1,6 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { API } from '.';
-import { IpcEvent } from '..';
+import { API, IpcEvent } from '.';
 
 let api: API;
 

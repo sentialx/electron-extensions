@@ -1,4 +1,4 @@
-import { ipcMain, session, webContents } from 'electron';
+import { ipcMain, webContents, Session } from 'electron';
 import { makeId } from '~/shared/utils/string';
 import { matchesPattern } from '~/shared/utils/url';
 
@@ -143,8 +143,8 @@ const interceptRequest = (
   }
 };
 
-export const runWebRequestService = () => {
-  const webviewRequest = session.fromPartition('persist:view').webRequest;
+export const runWebRequestService = (ses: Session) => {
+  const { webRequest } = ses;
 
   // onBeforeSendHeaders
 
@@ -159,7 +159,7 @@ export const runWebRequestService = () => {
     interceptRequest('onBeforeSendHeaders', newDetails, callback);
   };
 
-  webviewRequest.onBeforeSendHeaders(async (details: any, callback: any) => {
+  webRequest.onBeforeSendHeaders(async (details: any, callback: any) => {
     await onBeforeSendHeaders(details, callback);
   });
 
@@ -170,7 +170,7 @@ export const runWebRequestService = () => {
     interceptRequest('onBeforeRequest', newDetails, callback);
   };
 
-  webviewRequest.onBeforeRequest(
+  webRequest.onBeforeRequest(
     async (details: Electron.OnBeforeRequestDetails, callback: any) => {
       await onBeforeRequest(details, callback);
     },
@@ -189,7 +189,7 @@ export const runWebRequestService = () => {
     interceptRequest('onHeadersReceived', newDetails, callback);
   };
 
-  webviewRequest.onHeadersReceived(
+  webRequest.onHeadersReceived(
     async (details: Electron.OnHeadersReceivedDetails, callback: any) => {
       await onHeadersReceived(details, callback);
     },
@@ -207,7 +207,7 @@ export const runWebRequestService = () => {
     interceptRequest('onSendHeaders', newDetails);
   };
 
-  webviewRequest.onSendHeaders(async (details: any) => {
+  webRequest.onSendHeaders(async (details: any) => {
     await onSendHeaders(details);
   });
 
@@ -218,7 +218,7 @@ export const runWebRequestService = () => {
     interceptRequest('onCompleted', newDetails);
   };
 
-  webviewRequest.onCompleted(async (details: any) => {
+  webRequest.onCompleted(async (details: any) => {
     await onCompleted(details);
   });
 
@@ -229,7 +229,7 @@ export const runWebRequestService = () => {
     interceptRequest('onErrorOccurred', newDetails);
   };
 
-  webviewRequest.onErrorOccurred(async (details: any) => {
+  webRequest.onErrorOccurred(async (details: any) => {
     await onErrorOccurred(details);
   });
 

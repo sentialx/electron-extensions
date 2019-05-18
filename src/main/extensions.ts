@@ -60,7 +60,7 @@ export const startBackgroundPage = async (extension: Extension) => {
     const contents: WebContents = (webContents as any).create({
       partition: 'persist:wexond_extension',
       isBackgroundPage: true,
-      preload: `${app.getAppPath()}/build/renderer/background/index.js`,
+      preload: `${__dirname}/../renderer/background/index.js`,
       enableRemoteModule: false,
       sandbox: true,
       commandLineSwitches: ['--background-page'],

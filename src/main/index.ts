@@ -2,8 +2,6 @@ import { Session, app } from 'electron';
 
 export class ExtensionsMain {
   constructor(session: Session) {
-    session.setPreloads([
-      `${app.getAppPath()}/build/renderer/content/index.js`,
-    ]);
+    session.setPreloads([`${__dirname}/../renderer/content/index.js`]);
   }
 }

@@ -1,5 +1,9 @@
-import { MainOptions } from './models';
+import { Session, app } from 'electron';
 
 export class ExtensionsMain {
-  constructor(options?: MainOptions) {}
+  constructor(session: Session) {
+    session.setPreloads([
+      `${app.getAppPath()}/build/renderer/content/index.js`,
+    ]);
+  }
 }

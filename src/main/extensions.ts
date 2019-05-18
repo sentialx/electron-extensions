@@ -164,7 +164,7 @@ ipcMain.on('get-extensions', (e: IpcMessageEvent) => {
 });
 
 ipcMain.on('api-tabs-query', (e: Electron.IpcMessageEvent) => {
-  // TOOD:
+  // TODO:
   // appWindow.webContents.send("api-tabs-query", e.sender.id);
 });
 

@@ -1,4 +1,4 @@
-import { MainOptions } from "./models";
+import { MainOptions } from './models';
 
 export class ExtensionsMain {
   constructor(options?: MainOptions) {}

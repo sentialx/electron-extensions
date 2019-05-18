@@ -4,8 +4,6 @@ import { join } from 'path';
 import { parse } from 'url';
 import { extensions } from './extensions';
 
-const applets = ['newtab'];
-
 export const registerProtocols = () => {
   protocol.registerSchemesAsPrivileged([
     {

@@ -1,5 +1,7 @@
+import { WebContents } from 'electron';
+
 export interface BackgroundPage {
   html: Buffer;
   fileName: string;
-  webContentsId: number;
+  webContents: WebContents;
 }

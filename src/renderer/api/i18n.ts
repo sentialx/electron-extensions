@@ -1,5 +1,5 @@
 import { API } from '.';
-import { replaceAll } from '~/shared/utils/string';
+import { replaceAll } from '~/utils/string';
 
 // https://developer.chrome.com/extensions/i18n
 

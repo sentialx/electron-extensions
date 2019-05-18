@@ -1,6 +1,6 @@
 import { format } from 'url';
 import { ipcRenderer } from 'electron';
-import { makeId } from '~/shared/utils/string';
+import { makeId } from '~/utils/string';
 import { API, Port, ApiEvent } from '.';
 
 // https://developer.chrome.com/extensions/runtime

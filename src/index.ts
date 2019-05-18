@@ -1,3 +1,3 @@
-import { ExtensionsMain } from "./main";
+import { ExtensionsMain } from './main';
 
 export { ExtensionsMain };

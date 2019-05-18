@@ -2,9 +2,9 @@ import { app, protocol } from 'electron';
 import { readFile } from 'fs';
 import { join } from 'path';
 import { parse } from 'url';
-import { extensions } from './extensions';
+import { ExtensionsMain } from '..';
 
-export const registerProtocols = () => {
+export const registerProtocols = (main: ExtensionsMain) => {
   protocol.registerSchemesAsPrivileged([
     {
       scheme: 'wexond-extension',
@@ -22,7 +22,7 @@ export const registerProtocols = () => {
           return callback();
         }
 
-        const extension = extensions[parsed.hostname];
+        const extension = main.extensions[parsed.hostname];
 
         if (!extension) {
           return callback();

@@ -1,7 +1,7 @@
-import { ipcRenderer, webFrame } from 'electron';
-import { IpcExtension } from '~/shared/models';
-import { getAPI } from '~/shared/utils/extensions';
+import { ipcRenderer } from 'electron';
+import { IpcExtension } from '~/models';
 import { parse } from 'url';
+import { getAPI } from '../api';
 
 declare const window: any;
 declare const global: any;

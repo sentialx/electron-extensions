@@ -1,17 +1,23 @@
 import { Session } from 'electron';
 import { resolve } from 'path';
 import { promises, existsSync } from 'fs';
+import enhanceWebRequest from 'electron-better-web-request';
+
 import { Extension, StorageArea } from './models';
 import { getPath } from '~/utils/paths';
-import { runWebRequestService } from './services/web-request';
-import { runMessagingService } from './services/messaging';
-import { registerProtocols } from './services/protocols';
 import { startBackgroundPage } from './utils/extensions';
+import {
+  runWebRequestService,
+  runMessagingService,
+  registerProtocols,
+} from './services';
 
 export class ExtensionsMain {
   public extensions: { [key: string]: Extension } = {};
 
   constructor(session: Session) {
+    enhanceWebRequest(session);
+
     session.setPreloads([`${__dirname}/../renderer/content/index.js`]);
 
     runWebRequestService(session);

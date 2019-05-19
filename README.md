@@ -16,9 +16,11 @@ The library is really easy-to-use. All you will have to do is to put the followi
 import { ExtensionsMain } from 'electron-extensions';
 import { app, session } from 'electron';
 
+const extensions = new ExtensionsMain(session.defaultSession);
+
 app.on('ready', () => {
   ...
-  const extensions = new ExtensionsMain(session.defaultSession);
+  extensions.setSession(session.defaultSession);
   extensions.load('C:/.../abcdefghijklmnoprstuwxyz'); // Path to the extension to load
   ...
 });
@@ -31,11 +33,15 @@ app.on('ready', () => {
 
 It's only for the main process. It's used to load extensions and handle their events.
 
-### `new ExtensionsMain(session: Electron.Session)`
+### `new ExtensionsMain()`
 
-The `session` parameter is used for injecting preloads to load `content_scripts` in all webContents within a given Electron `session`.
+The constructor must be called before `app` is ready.
 
 ### Instance methods
+
+#### `setSession(session: Electron.Session)`
+
+`session` is used for injecting preloads to load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
 
 #### `load(path: string)`
 

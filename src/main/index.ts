@@ -15,14 +15,17 @@ import { getPath } from '../utils/paths';
 export class ExtensionsMain {
   public extensions: { [key: string]: Extension } = {};
 
-  constructor(session: Session) {
-    enhanceWebRequest(session);
-
-    session.setPreloads([`${__dirname}/../renderer/content/index.js`]);
-
-    runWebRequestService(session);
-    runMessagingService(this);
+  constructor() {
     registerProtocols(this);
+    runMessagingService(this);
+  }
+
+  public setSession(ses: Session) {
+    enhanceWebRequest(ses);
+
+    ses.setPreloads([`${__dirname}/../renderer/content/index.js`]);
+
+    runWebRequestService(ses);
   }
 
   public async load(dir: string) {

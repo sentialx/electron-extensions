@@ -1,3 +1,1 @@
-import { ExtensionsMain } from './main';
-
-export { ExtensionsMain };
+export * from './main';

@@ -61,7 +61,7 @@ export const startBackgroundPage = async (extension: Extension) => {
 
     contents.loadURL(
       format({
-        protocol: 'wexond-extension',
+        protocol: 'chrome-extension',
         slashes: true,
         hostname: id,
         pathname: fileName,

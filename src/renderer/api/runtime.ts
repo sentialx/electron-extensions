@@ -115,7 +115,7 @@ export class Runtime {
 
   public getURL = (path: string) => {
     return format({
-      protocol: 'wexond-extension',
+      protocol: 'chrome-extension',
       slashes: true,
       hostname: this.id,
       pathname: path,

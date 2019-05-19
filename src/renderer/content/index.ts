@@ -69,7 +69,7 @@ const injectChromeApi = (extension: IpcExtension, worldId: number) => {
     ],
     false,
     (window: any) => {
-      window.chrome = window.wexond = window.browser = context;
+      window.chrome = window.browser = context;
     },
   );
 };
@@ -182,7 +182,7 @@ process.once('loaded', () => {
 
     if (manifest.content_scripts) {
       const readArrayOfFiles = (relativePath: string) => ({
-        url: `wexond-extension://${extension.id}/${relativePath}`,
+        url: `chrome-extension://${extension.id}/${relativePath}`,
         code: readFileSync(join(extension.path, relativePath), 'utf8'),
       });
 

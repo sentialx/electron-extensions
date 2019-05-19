@@ -113,7 +113,7 @@ export class Runtime {
 
   public getURL = (path: string) => {
     return format({
-      protocol: 'chrome-extension',
+      protocol: 'electron-extension',
       slashes: true,
       hostname: this.id,
       pathname: path,

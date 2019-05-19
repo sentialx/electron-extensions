@@ -180,7 +180,7 @@ process.once('loaded', () => {
 
     if (manifest.content_scripts) {
       const readArrayOfFiles = (relativePath: string) => ({
-        url: `chrome-extension://${extension.id}/${relativePath}`,
+        url: `electron-extension://${extension.id}/${relativePath}`,
         code: readFileSync(join(extension.path, relativePath), 'utf8'),
       });
 

@@ -7,14 +7,14 @@ import { ExtensionsMain } from '..';
 export const registerProtocols = (main: ExtensionsMain) => {
   protocol.registerSchemesAsPrivileged([
     {
-      scheme: 'chrome-extension',
+      scheme: 'electron-extension',
       privileges: { bypassCSP: true, secure: true },
     },
   ]);
 
   (app as any).on('session-created', (sess: Electron.session) => {
     sess.protocol.registerBufferProtocol(
-      'chrome-extension',
+      'electron-extension',
       (request, callback) => {
         const parsed = parse(decodeURIComponent(request.url));
 

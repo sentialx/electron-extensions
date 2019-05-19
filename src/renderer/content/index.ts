@@ -54,10 +54,8 @@ ipcRenderer.on(
   },
 );
 
-const tabId = remote.getCurrentWebContents().id;
-
 const injectChromeApi = (extension: IpcExtension, worldId: number) => {
-  const context = getAPI(extension, tabId);
+  const context = getAPI(extension);
 
   webFrame.setIsolatedWorldHumanReadableName(worldId, name);
   webFrame.executeJavaScriptInIsolatedWorld(

@@ -32,23 +32,23 @@ export class API {
   public browserAction: BrowserAction;
 
   // tslint:disable-next-line
-  constructor(extension: IpcExtension, tabId: number) {
+  constructor(extension: IpcExtension) {
     this._extension = extension;
 
-    this.runtime = new Runtime(this, tabId);
+    this.runtime = new Runtime(this);
     this.webNavigation = new WebNavigation();
     this.alarms = new Alarms(this);
     this.storage = new Storage(this);
     this.extension = new Extension();
-    this.tabs = new Tabs(this, tabId);
+    this.tabs = new Tabs(this);
     this.webRequest = new WebRequest();
     this.i18n = new I18n(this);
     this.browserAction = new BrowserAction(this);
   }
 }
 
-export const getAPI = (extension: IpcExtension, tabId: number = null) => {
-  const api = new API(extension, tabId);
+export const getAPI = (extension: IpcExtension) => {
+  const api = new API(extension);
 
   ipcRenderer.on(
     'api-runtime-connect',

@@ -1,18 +1,17 @@
 import { format } from 'url';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { API, Port, ApiEvent } from '.';
 import { makeId } from '../../utils/string';
 
 // https://developer.chrome.com/extensions/runtime
 
 let api: API;
-let currentTabId: number = null;
 
 const getSender = (id: string): chrome.runtime.MessageSender => ({
   id,
   url: window.location.href,
   frameId: 0,
-  tab: { id: currentTabId } as any,
+  tab: { id: remote.getCurrentWebContents().id } as any,
 });
 
 export class Runtime {
@@ -23,10 +22,9 @@ export class Runtime {
   public onConnect = new ApiEvent();
   public onMessage = new ApiEvent();
 
-  constructor(_api: API, tabId: number) {
+  constructor(_api: API) {
     api = _api;
     this.id = api._extension.id;
-    currentTabId = tabId;
   }
 
   public sendMessage = (...args: any[]) => {

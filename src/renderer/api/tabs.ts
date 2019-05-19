@@ -1,11 +1,10 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { API, IpcEvent } from '.';
 import { makeId } from '../../utils/string';
 
 let api: API;
-let currentTabId: number;
 
 // https://developer.chrome.com/extensions/tabs
 
@@ -16,9 +15,8 @@ export class Tabs {
   public onRemoved = new IpcEvent('tabs', 'onRemoved');
 
   // tslint:disable-next-line
-  constructor(_api: API, tabId: number) {
+  constructor(_api: API) {
     api = _api;
-    currentTabId = tabId;
   }
 
   public get = (tabId: number, callback: (tab: chrome.tabs.Tab) => void) => {
@@ -28,7 +26,7 @@ export class Tabs {
   };
 
   public getCurrent = (callback: (tab: chrome.tabs.Tab) => void) => {
-    this.get(currentTabId, tab => {
+    this.get(remote.getCurrentWebContents().id, tab => {
       callback(tab);
     });
   };

@@ -1,5 +1,5 @@
 import { Session } from 'electron';
-import { resolve } from 'path';
+import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 import enhanceWebRequest from 'electron-better-web-request';
 
@@ -42,7 +42,7 @@ export class ExtensionsMain {
       await promises.readFile(manifestPath, 'utf8'),
     );
 
-    const id = dir.toLowerCase();
+    const id = basename(dir);
 
     if (this.extensions[id]) {
       return;

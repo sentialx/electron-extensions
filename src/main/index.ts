@@ -87,3 +87,5 @@ export class ExtensionsMain {
     startBackgroundPage(extension);
   }
 }
+
+export const extensionsMain = new ExtensionsMain();

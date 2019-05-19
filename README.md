@@ -13,15 +13,13 @@ $ npm install electron-extensions
 The library is really easy-to-use. All you will have to do is to put the following code in your main process:
 
 ```typescript
-import { ExtensionsMain } from 'electron-extensions';
+import { extensionsMain } from 'electron-extensions';
 import { app, session } from 'electron';
-
-const extensions = new ExtensionsMain(session.defaultSession);
 
 app.on('ready', () => {
   ...
-  extensions.setSession(session.defaultSession);
-  extensions.load('C:/.../abcdefghijklmnoprstuwxyz'); // Path to the extension to load
+  extensionsMain.setSession(session.defaultSession);
+  extensionsMain.load('C:/.../abcdefghijklmnoprstuwxyz'); // Path to the extension to load
   ...
 });
 

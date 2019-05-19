@@ -27,13 +27,9 @@ app.on('ready', () => {
 
 # Documentation
 
-## Class `ExtensionsMain`
+## Object `extensionsMain`
 
 It's only for the main process. It's used to load extensions and handle their events.
-
-### `new ExtensionsMain()`
-
-The constructor must be called before `app` is ready.
 
 ### Instance methods
 

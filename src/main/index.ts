@@ -4,13 +4,13 @@ import { promises, existsSync } from 'fs';
 import enhanceWebRequest from 'electron-better-web-request';
 
 import { Extension, StorageArea } from './models';
-import { getPath } from '~/utils/paths';
 import { startBackgroundPage } from './utils/extensions';
 import {
   runWebRequestService,
   runMessagingService,
   registerProtocols,
 } from './services';
+import { getPath } from '../utils/paths';
 
 export class ExtensionsMain {
   public extensions: { [key: string]: Extension } = {};

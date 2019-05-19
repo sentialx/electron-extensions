@@ -14,13 +14,7 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "lib": ["esnext", "dom"],
-    "experimentalDecorators": true,
-
-    "baseUrl": "./",
-
-    "paths": {
-      "~/*": ["./src/*"]
-    }
+    "experimentalDecorators": true
   },
   "include": ["./src/**/*.ts"]
 }

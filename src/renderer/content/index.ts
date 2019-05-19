@@ -2,10 +2,10 @@ import { ipcRenderer, webFrame, remote, IpcMessageEvent } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { format, parse } from 'url';
-import { IpcExtension } from '~/models';
 import { runInThisContext } from 'vm';
-import { matchesPattern } from '~/utils/url';
 import { getAPI } from '../api';
+import { IpcExtension } from '../../models';
+import { matchesPattern } from '../../utils/url';
 
 const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
   'get-extensions',

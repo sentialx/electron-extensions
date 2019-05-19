@@ -1,6 +1,5 @@
 import { Alarms } from './alarms';
 import { Runtime } from './runtime';
-import { IpcExtension } from '~/models';
 import { WebNavigation } from './web-navigation';
 import { Extension } from './extension';
 import { Tabs } from './tabs';
@@ -10,6 +9,7 @@ import { BrowserAction } from './browser-action';
 import { Storage } from './storage';
 import { ipcRenderer, remote } from 'electron';
 import { Port } from './models/port';
+import { IpcExtension } from '../../models';
 
 export * from './events/api-event';
 export * from './events/ipc-event';

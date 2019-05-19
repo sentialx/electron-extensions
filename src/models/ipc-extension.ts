@@ -1,4 +1,4 @@
-import { BackgroundPage } from '~/main/models/background-page';
+import { BackgroundPage } from '../main/models/background-page';
 
 export interface IpcExtension {
   id?: string;

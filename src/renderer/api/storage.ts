@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 
 import { API } from '.';
-import { makeId } from '~/utils/string';
+import { makeId } from '../../utils/string';
 
 // https://developer.chrome.com/extensions/storage
 

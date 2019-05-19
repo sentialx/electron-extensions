@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { API, IpcEvent } from '.';
-import { makeId } from '~/utils/string';
+import { makeId } from '../../utils/string';
 
 let api: API;
 let currentTabId: number;

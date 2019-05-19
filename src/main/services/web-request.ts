@@ -1,6 +1,6 @@
 import { ipcMain, webContents, Session } from 'electron';
-import { makeId } from '~/utils/string';
-import { matchesPattern } from '~/utils/url';
+import { matchesPattern } from '../../utils/url';
+import { makeId } from '../../utils/string';
 
 const eventListeners: any = {};
 

@@ -1,10 +1,10 @@
 import { WebContents, webContents } from 'electron';
-import { Extension } from '~/main/models/extension';
 import { promises } from 'fs';
 import { resolve } from 'path';
 import { format } from 'url';
-import { ExtensionsMain } from '~/main';
-import { IpcExtension } from '~/models';
+import { IpcExtension } from '../../models';
+import { Extension } from '../models';
+import { ExtensionsMain } from '..';
 
 export const getIpcExtension = (extension: Extension): IpcExtension => {
   const ipcExtension: Extension = { ...extension };

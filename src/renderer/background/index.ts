@@ -1,7 +1,8 @@
 import { ipcRenderer } from 'electron';
 import { parse } from 'url';
-import { getAPI } from '../api';
+
 import { IpcExtension } from '../../models';
+import { getAPI } from '../api';
 
 declare const window: any;
 declare const global: any;

@@ -22,10 +22,9 @@ export class ExtensionsMain {
 
   public setSession(ses: Session) {
     enhanceWebRequest(ses);
+    runWebRequestService(ses);
 
     ses.setPreloads([`${__dirname}/../renderer/content/index.js`]);
-
-    runWebRequestService(ses);
   }
 
   public async load(dir: string) {

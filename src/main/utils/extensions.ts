@@ -44,14 +44,15 @@ export const startBackgroundPage = async (extension: Extension) => {
     const contents: WebContents = (webContents as any).create({
       partition: 'persist:wexond_extension',
       isBackgroundPage: true,
-      preload: `${__dirname}/../renderer/background/index.js`,
-      enableRemoteModule: false,
-      sandbox: true,
+      preload: resolve(__dirname, '../..', 'renderer/background/index.js'),
       commandLineSwitches: ['--background-page'],
       webPreferences: {
-        nodeIntegration: false,
+        nodeIntegration: true,
+        contextIsolation: false,
       },
     });
+
+    contents.openDevTools();
 
     extension.backgroundPage = {
       html,

@@ -1,7 +1,6 @@
 import { Session } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
-import enhanceWebRequest from 'electron-better-web-request';
 
 import { Extension, StorageArea } from './models';
 import { startBackgroundPage } from './utils/extensions';
@@ -21,9 +20,7 @@ export class ExtensionsMain {
   }
 
   public setSession(ses: Session) {
-    enhanceWebRequest(ses);
     runWebRequestService(ses);
-
     ses.setPreloads([`${__dirname}/../renderer/content/index.js`]);
   }
 

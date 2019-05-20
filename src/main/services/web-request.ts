@@ -1,5 +1,5 @@
 import { ipcMain, Session, WebContents, webContents } from 'electron';
-import { matchesPattern } from '../../utils/url';
+import enhanceWebRequest from 'electron-better-web-request';
 import { makeId } from '../../utils/string';
 
 const eventListeners: { [key: string]: Function } = {};
@@ -126,7 +126,7 @@ const interceptRequest = (
 };
 
 export const runWebRequestService = (ses: Session) => {
-  const { webRequest } = ses;
+  const { webRequest } = enhanceWebRequest(ses);
 
   // Handle listener add and remove.
 
@@ -167,7 +167,11 @@ export const runWebRequestService = (ses: Session) => {
       );
     };
 
-    (webRequest as any)[name](filters, eventListeners[id]);
+    if (filters) {
+      (webRequest as any)[name](filters, eventListeners[id]);
+    } else {
+      (webRequest as any)[name]({ urls: ['<all_urls>'] }, eventListeners[id]);
+    }
   });
 
   ipcMain.on('api-remove-webRequest-listener', (e: any, data: any) => {

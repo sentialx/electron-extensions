@@ -2,18 +2,6 @@ import { ipcMain, Session, WebContents, webContents } from 'electron';
 import enhanceWebRequest from 'electron-better-web-request';
 import { makeId } from '../../utils/string';
 
-const eventNames = [
-  'onBeforeRequest',
-  'onBeforeSendHeaders',
-  'onSendHeaders',
-  'onHeadersReceived',
-  'onAuthRequired',
-  'onBeforeRedirect',
-  'onResponseStarted',
-  'onCompleted',
-  'onErrorOccurred',
-];
-
 const eventListeners: { [key: string]: Function } = {};
 
 const getRequestType = (type: string): any => {

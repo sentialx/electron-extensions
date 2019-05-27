@@ -1,6 +1,10 @@
-import { webContents, ipcMain, IpcMessageEvent } from 'electron';
+import { webContents, ipcMain, IpcMessageEvent, Session } from 'electron';
 import { ExtensionsMain } from '..';
 import { getIpcExtension, sendToAllBackgroundPages } from '../utils/extensions';
+
+const getWebContentsBySession = (ses: Session) => {
+  return webContents.getAllWebContents().filter(x => x.session === ses);
+};
 
 export const runMessagingService = (main: ExtensionsMain) => {
   ipcMain.on('get-extension', (e: IpcMessageEvent, id: string) => {
@@ -97,20 +101,19 @@ export const runMessagingService = (main: ExtensionsMain) => {
     (e: IpcMessageEvent, { portId, msg }: any) => {
       Object.keys(main.extensions).forEach(key => {
         const { backgroundPage } = main.extensions[key];
-        const { webContents } = backgroundPage;
+        const contents = backgroundPage.webContents;
 
-        if (e.sender.id !== webContents.id) {
-          webContents.send(`api-port-postMessage-${portId}`, msg);
+        if (e.sender.id !== contents.id) {
+          contents.send(`api-port-postMessage-${portId}`, msg);
         }
       });
 
-      /* TODO:
-    for (const key in appWindow.viewManager.views) {
-      const view = appWindow.viewManager.views[key];
-      if (view.webContents.id !== e.sender.id) {
-        view.webContents.send(`api-port-postMessage-${portId}`, msg);
+      const contents = getWebContentsBySession(main.session);
+      for (const content of contents) {
+        if (content.id !== e.sender.id) {
+          content.send(`api-port-postMessage-${portId}`, msg);
+        }
       }
-    }*/
     },
   );
 

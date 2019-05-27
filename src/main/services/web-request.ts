@@ -2,6 +2,18 @@ import { ipcMain, Session, WebContents, webContents } from 'electron';
 import enhanceWebRequest from 'electron-better-web-request';
 import { makeId } from '../../utils/string';
 
+const eventNames = [
+  'onBeforeRequest',
+  'onBeforeSendHeaders',
+  'onSendHeaders',
+  'onHeadersReceived',
+  'onAuthRequired',
+  'onBeforeRedirect',
+  'onResponseStarted',
+  'onCompleted',
+  'onErrorOccurred',
+];
+
 const eventListeners: { [key: string]: Function } = {};
 
 const getRequestType = (type: string): any => {
@@ -125,6 +137,23 @@ const interceptRequest = (
   }
 };
 
+const resolver = (listeners: any) => {
+  const response = listeners.reverse().reduce(
+    async (accumulator: any, element: any) => {
+      if (accumulator.cancel) {
+        return accumulator;
+      }
+
+      const result = await element.apply();
+
+      return { ...accumulator, ...result };
+    },
+    { cancel: false },
+  );
+
+  return response;
+};
+
 export const runWebRequestService = (ses: Session) => {
   const { webRequest } = enhanceWebRequest(ses);
 
@@ -172,6 +201,8 @@ export const runWebRequestService = (ses: Session) => {
     } else {
       (webRequest as any)[name]({ urls: ['<all_urls>'] }, eventListeners[id]);
     }
+
+    (webRequest as any).setResolver(name, resolver);
   });
 
   ipcMain.on('api-remove-webRequest-listener', (e: any, data: any) => {

@@ -27,7 +27,7 @@
     "lint-fix": "prettier --write \"src/**/*.ts*\" && tslint \"src/**/*.ts*\" --fix",
     "watch": "tsc --watch",
     "build": "tsc",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "pre-commit": [
     "lint-fix"

@@ -15,7 +15,10 @@ export const getIpcExtension = (extension: Extension): IpcExtension => {
   return ipcExtension;
 };
 
-export const startBackgroundPage = async (extension: Extension) => {
+export const startBackgroundPage = async (
+  extension: Extension,
+  devtools: boolean = false,
+) => {
   const { manifest, path, id } = extension;
 
   if (manifest.background) {
@@ -52,7 +55,9 @@ export const startBackgroundPage = async (extension: Extension) => {
       },
     });
 
-    contents.openDevTools();
+    if (devtools) {
+      contents.openDevTools();
+    }
 
     extension.backgroundPage = {
       html,

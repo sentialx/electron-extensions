@@ -28,7 +28,10 @@ export class ExtensionsMain {
     runMessagingService(this);
   }
 
-  public async load(dir: string) {
+  public async load(
+    dir: string,
+    { devtools }: { devtools: boolean } = { devtools: false },
+  ) {
     const stats = await promises.stat(dir);
 
     if (!stats.isDirectory()) throw new Error('Given path is not a directory');
@@ -84,7 +87,7 @@ export class ExtensionsMain {
       extension.locale = locale;
     }
 
-    startBackgroundPage(extension);
+    startBackgroundPage(extension, devtools);
   }
 }
 

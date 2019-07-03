@@ -1,10 +1,7 @@
 import { webContents, ipcMain, IpcMessageEvent, Session } from 'electron';
 import { getIpcExtension, sendToBackgroundPages } from '../../utils/extensions';
 import { ExtensibleSession } from '..';
-
-const getWebContentsBySession = (ses: Session) => {
-  return webContents.getAllWebContents().filter(x => x.session === ses);
-};
+import { getAllWebContentsInSession } from '../../utils/web-contents';
 
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e: IpcMessageEvent, id: string) => {
@@ -111,7 +108,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
         }
       });
 
-      const contents = getWebContentsBySession(ses.session);
+      const contents = getAllWebContentsInSession(ses.session);
       for (const content of contents) {
         if (content.id !== e.sender.id) {
           content.send(`api-port-postMessage-${portId}`, msg);
@@ -221,7 +218,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     (e: IpcMessageEvent, msg: string, ...args: any[]) => {
       sendToBackgroundPages(ses, msg, ...args);
 
-      const contents = getWebContentsBySession(ses.session);
+      const contents = getAllWebContentsInSession(ses.session);
       for (const content of contents) {
         content.send(msg, ...args);
       }

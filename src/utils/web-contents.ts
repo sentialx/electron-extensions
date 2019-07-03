@@ -1,4 +1,4 @@
-import { WebContents } from 'electron';
+import { WebContents, webContents } from 'electron';
 
 import { sendToBackgroundPages } from './extensions';
 import { ExtensibleSession } from '..';
@@ -74,4 +74,13 @@ export const hookWebContentsEvents = (
   webContents.once('destroyed', () => {
     sendToBackgroundPages(ses, 'api-tabs-onRemoved', tabId);
   });
+};
+
+export const getAllWebContentsInSession = (ses: Electron.Session) => {
+  return webContents.getAllWebContents().filter(x => x.session === ses);
+};
+
+export const webContentsValid = (webContents: WebContents) => {
+  const type = webContents.getType();
+  return type === 'window' || type === 'webview' || type === 'browserView';
 };

@@ -10,7 +10,10 @@ import { StorageArea } from '../models/storage-area';
 
 export const manifestToExtensionInfo = (manifest: chrome.runtime.Manifest) => {
   return {
-    startPage: manifest.startPage,
+    startPage: resolve(
+      manifest.srcDirectory,
+      manifest.devtools_page ? manifest.devtools_page : '',
+    ),
     srcDirectory: manifest.srcDirectory,
     name: manifest.name,
     exposeExperimentalAPIs: true,
@@ -146,10 +149,9 @@ export const loadDevToolsExtensions = (
 ) => {
   if (!webContents.devToolsWebContents) return;
 
-  manifests.forEach(loadExtension);
-
   const extensionInfoArray = manifests.map(manifestToExtensionInfo);
   extensionInfoArray.forEach(extension => {
+    if (!extension.startPage) return;
     (webContents.devToolsWebContents as any)._grantOriginAccess(
       extension.startPage,
     );

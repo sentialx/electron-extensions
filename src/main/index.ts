@@ -34,21 +34,23 @@ const sessions: ExtensibleSession[] = [];
 
 export const backgroundPages: BackgroundPage[] = [];
 
-ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
-  const ses = sessions.find(x => x.session === e.sender.session);
+if (ipcMain) {
+  ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
+    const ses = sessions.find(x => x.session === e.sender.session);
 
-  if (ses) {
-    e.returnValue = ses.id;
-  } else {
-    const ses = sessions.find(x => {
-      const extension = Object.values(x.extensions).find(
-        x => x.backgroundPage.webContents.id === e.sender.id,
-      );
-      return !!extension;
-    });
-    e.returnValue = ses.id;
-  }
-});
+    if (ses) {
+      e.returnValue = ses.id;
+    } else {
+      const ses = sessions.find(x => {
+        const extension = Object.values(x.extensions).find(
+          x => x.backgroundPage.webContents.id === e.sender.id,
+        );
+        return !!extension;
+      });
+      e.returnValue = ses.id;
+    }
+  });
+}
 
 export class ExtensibleSession {
   public extensions: { [key: string]: Extension } = {};

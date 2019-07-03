@@ -4,12 +4,14 @@ import { join } from 'path';
 import { parse } from 'url';
 import { ExtensibleSession } from '..';
 
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: 'electron-extension',
-    privileges: { bypassCSP: true, secure: true },
-  },
-]);
+if (protocol) {
+  protocol.registerSchemesAsPrivileged([
+    {
+      scheme: 'electron-extension',
+      privileges: { bypassCSP: true, secure: true },
+    },
+  ]);
+}
 
 export const registerProtocols = (ses: ExtensibleSession) => {
   session

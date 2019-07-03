@@ -1,4 +1,11 @@
-import { Session, IpcMessageEvent, ipcMain, app } from 'electron';
+import {
+  Session,
+  IpcMessageEvent,
+  ipcMain,
+  app,
+  WebContents,
+  BrowserWindow,
+} from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
@@ -29,6 +36,8 @@ export class ExtensibleSession {
   public extensions: { [key: string]: Extension } = {};
 
   public id = id++;
+
+  public webContents: WebContents[] = [];
 
   private _initialized = false;
 
@@ -91,5 +100,9 @@ export class ExtensibleSession {
       if (!webContentsValid(contents)) return;
       loadDevToolsExtensions(contents, extensionsToManifests(this.extensions));
     }
+  }
+
+  addWindow(window: BrowserWindow) {
+    this.webContents.push(window.webContents);
   }
 }

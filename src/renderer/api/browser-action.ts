@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron';
 
 import { IpcExtension } from '../../models/ipc-extension';
 import { IpcEvent } from './events/ipc-event';
+import { makeId } from '../../utils/string';
 
 export const getBrowserAction = (
   extension: IpcExtension,
@@ -21,14 +22,17 @@ export const getBrowserAction = (
   },
 
   setBadgeText: (details: chrome.browserAction.BadgeTextDetails, cb: any) => {
+    const responseId = makeId(32);
+
     ipcRenderer.send(
       `api-browserAction-setBadgeText-${sessionId}`,
+      responseId,
       extension.id,
       details,
     );
 
     if (cb) {
-      ipcRenderer.once('api-browserAction-setBadgeText', () => {
+      ipcRenderer.once(`api-browserAction-setBadgeText-${responseId}`, () => {
         cb();
       });
     }

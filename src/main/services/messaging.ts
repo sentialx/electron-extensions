@@ -230,15 +230,31 @@ export const runMessagingService = (ses: ExtensibleSession) => {
 
   ipcMain.on(
     `api-browserAction-setBadgeText-${ses.id}`,
-    (e: IpcMessageEvent, ...args: any[]) => {
-      /*
-    TODO:
-    appWindow.webContents.send(
-      'api-browserAction-setBadgeText',
-      e.sender.id,
-      ...args,
-    );
-    */
+    (
+      e: IpcMessageEvent,
+      responseId: string,
+      extensionId: string,
+      details: chrome.browserAction.BadgeTextDetails,
+    ) => {
+      const newId = makeId(32);
+
+      if (details.tabId) {
+        const wc = findWindowByWebContents(webContents.fromId(details.tabId));
+        wc.send('api-browserAction-setBadgeText', newId, extensionId, details);
+      } else {
+        for (const wc of ses.webContents) {
+          wc.send(
+            'api-browserAction-setBadgeText',
+            newId,
+            extensionId,
+            details,
+          );
+        }
+      }
+
+      ipcMain.on(`api-browserAction-setBadgeText-${newId}`, () => {
+        e.sender.send(`api-browserAction-setBadgeText-${responseId}`);
+      });
     },
   );
 
@@ -251,15 +267,6 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       for (const content of contents) {
         content.send(msg, ...args);
       }
-    },
-  );
-
-  ipcMain.on(
-    `emit-tabs-event-${ses.id}`,
-    (e: any, name: string, ...data: any[]) => {
-      // TODO: UI
-      // appWindow.viewManager.sendToAll(`api-emit-event-tabs-${name}`, ...data);
-      sendToBackgroundPages(ses, `api-emit-event-tabs-${name}`, ...data);
     },
   );
 };

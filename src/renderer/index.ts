@@ -9,6 +9,13 @@ export declare interface ExtensionsRenderer {
       callback: (tabId: number) => void,
     ) => void,
   ): this;
+  on(
+    event: 'set-badge-text',
+    listener: (
+      extensionId: string,
+      details: chrome.browserAction.BadgeTextDetails,
+    ) => void,
+  ): this;
   on(event: string, listener: Function): this;
 }
 
@@ -28,6 +35,19 @@ export class ExtensionsRenderer extends EventEmitter {
         };
 
         this.emit('create-tab', details, callback);
+      },
+    );
+
+    ipcRenderer.on(
+      'api-browserAction-setBadgeText',
+      (
+        e: IpcMessageEvent,
+        responseId: string,
+        extensionId: string,
+        details: chrome.browserAction.BadgeTextDetails,
+      ) => {
+        this.emit('set-badge-text', extensionId, details);
+        ipcRenderer.send(`api-browserAction-setBadgeText-${responseId}`);
       },
     );
   }

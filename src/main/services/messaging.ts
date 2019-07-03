@@ -1,7 +1,10 @@
-import { webContents, ipcMain, IpcMessageEvent, Session } from 'electron';
+import { webContents, ipcMain, IpcMessageEvent } from 'electron';
 import { getIpcExtension, sendToBackgroundPages } from '../../utils/extensions';
 import { ExtensibleSession } from '..';
-import { getAllWebContentsInSession } from '../../utils/web-contents';
+import {
+  getAllWebContentsInSession,
+  webContentsToTab,
+} from '../../utils/web-contents';
 
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e: IpcMessageEvent, id: string) => {
@@ -18,9 +21,11 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     e.returnValue = list;
   });
 
-  ipcMain.on(`api-tabs-query-${ses.id}`, (e: Electron.IpcMessageEvent) => {
-    // TODO:
-    // appWindow.webContents.send("api-tabs-query", e.sender.id);
+  ipcMain.on(`api-tabs-query-${ses.id}`, (e: IpcMessageEvent) => {
+    const tabs = getAllWebContentsInSession(ses.session).map(x =>
+      webContentsToTab(x),
+    );
+    e.sender.send('api-tabs-query', tabs);
   });
 
   ipcMain.on(

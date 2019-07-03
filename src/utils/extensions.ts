@@ -1,10 +1,21 @@
 import { WebContents, webContents } from 'electron';
-import { promises } from 'fs';
+import { promises, existsSync } from 'fs';
 import { resolve } from 'path';
 import { format } from 'url';
 import { Extension } from '../models/extension';
 import { IpcExtension } from '../models/ipc-extension';
 import { ExtensibleSession } from '../main';
+import { getPath } from './paths';
+import { StorageArea } from '../models/storage-area';
+
+export const manifestToExtensionInfo = (manifest: chrome.runtime.Manifest) => {
+  return {
+    startPage: manifest.startPage,
+    srcDirectory: manifest.srcDirectory,
+    name: manifest.name,
+    exposeExperimentalAPIs: true,
+  };
+};
 
 export const getIpcExtension = (extension: Extension): IpcExtension => {
   const ipcExtension: Extension = { ...extension };
@@ -85,4 +96,61 @@ export const sendToBackgroundPages = (
     const { webContents } = ses.extensions[key].backgroundPage;
     webContents.send(msg, ...args);
   }
+};
+
+export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
+  const storagePath = getPath('storage/extensions', manifest.extensionId);
+  const local = new StorageArea(resolve(storagePath, 'local'));
+  const sync = new StorageArea(resolve(storagePath, 'sync'));
+  const managed = new StorageArea(resolve(storagePath, 'managed'));
+
+  const extension: Extension = {
+    manifest,
+    alarms: [],
+    databases: { local, sync, managed },
+  };
+
+  if (typeof manifest.default_locale === 'string') {
+    const defaultLocalePath = resolve(
+      manifest.srcDirectory,
+      '_locales',
+      manifest.default_locale,
+    );
+
+    if (!existsSync(defaultLocalePath)) return extension;
+
+    const messagesPath = resolve(defaultLocalePath, 'messages.json');
+    const stats = await promises.stat(messagesPath);
+
+    if (!existsSync(messagesPath) || stats.isDirectory()) return extension;
+
+    const data = await promises.readFile(messagesPath, 'utf8');
+    const locale = JSON.parse(data);
+
+    extension.locale = locale;
+  }
+
+  startBackgroundPage(extension);
+
+  return extension;
+};
+
+export const loadDevToolsExtensions = (
+  webContents: WebContents,
+  manifests: chrome.runtime.Manifest[],
+) => {
+  if (!webContents.devToolsWebContents) return;
+
+  manifests.forEach(loadExtension);
+
+  const extensionInfoArray = manifests.map(manifestToExtensionInfo);
+  extensionInfoArray.forEach(extension => {
+    (webContents.devToolsWebContents as any)._grantOriginAccess(
+      extension.startPage,
+    );
+  });
+
+  webContents.devToolsWebContents.executeJavaScript(
+    `InspectorFrontendAPI.addExtensions(${JSON.stringify(extensionInfoArray)})`,
+  );
 };

@@ -2,13 +2,11 @@ import { Session, IpcMessageEvent, ipcMain, app } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
-import { getPath } from '../utils/paths';
 import { Extension } from '../models/extension';
 import { registerProtocols } from './services/protocols';
 import { runWebRequestService } from './services/web-request';
 import { runMessagingService } from './services/messaging';
-import { StorageArea } from '../models/storage-area';
-import { startBackgroundPage } from '../utils/extensions';
+import { loadDevToolsExtensions, loadExtension } from '../utils/extensions';
 import { hookWebContentsEvents } from '../utils/web-contents';
 
 let id = 1;
@@ -36,10 +34,17 @@ export class ExtensibleSession {
       }
 
       hookWebContentsEvents(this, webContents);
+
+      webContents.on('devtools-opened', () => {
+        const manifests = Object.values(this.extensions).map(
+          item => item.manifest,
+        );
+        loadDevToolsExtensions(webContents, manifests);
+      });
     });
   }
 
-  async loadExtension(dir: string, { devtools } = { devtools: false }) {
+  async loadExtension(dir: string) {
     if (!this._initialized) {
       this.session.setPreloads([`${__dirname}/../renderer/content/index.js`]);
 
@@ -69,41 +74,11 @@ export class ExtensibleSession {
       return;
     }
 
-    const storagePath = getPath('storage/extensions', id);
-    const local = new StorageArea(resolve(storagePath, 'local'));
-    const sync = new StorageArea(resolve(storagePath, 'sync'));
-    const managed = new StorageArea(resolve(storagePath, 'managed'));
+    manifest.srcDirectory = dir;
+    manifest.extensionId = id;
 
-    const extension: Extension = {
-      manifest,
-      alarms: [],
-      databases: { local, sync, managed },
-      path: dir,
-      id,
-    };
+    const extension = await loadExtension(manifest);
 
     this.extensions[id] = extension;
-
-    if (typeof manifest.default_locale === 'string') {
-      const defaultLocalePath = resolve(
-        dir,
-        '_locales',
-        manifest.default_locale,
-      );
-
-      if (!existsSync(defaultLocalePath)) return;
-
-      const messagesPath = resolve(defaultLocalePath, 'messages.json');
-      const stats = await promises.stat(messagesPath);
-
-      if (!existsSync(messagesPath) || stats.isDirectory()) return;
-
-      const data = await promises.readFile(messagesPath, 'utf8');
-      const locale = JSON.parse(data);
-
-      extension.locale = locale;
-    }
-
-    startBackgroundPage(extension, devtools);
   }
 }

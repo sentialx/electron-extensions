@@ -11,6 +11,7 @@
   ],
   "homepage": "https://github.com/wexond/electron-extensions#readme",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "author": {
     "name": "Eryk Rakowski",
     "email": "sentialx@gmail.com"

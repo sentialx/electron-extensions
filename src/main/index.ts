@@ -1,4 +1,4 @@
-import { Session, WebContents, session } from 'electron';
+import { Session, IpcMessageEvent, ipcMain } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
@@ -10,8 +10,18 @@ import { runMessagingService } from './services/messaging';
 import { StorageArea } from '../models/storage-area';
 import { startBackgroundPage } from '../utils/extensions';
 
+let id = 1;
+
+const sessions: ExtensibleSession[] = [];
+
+ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
+  e.returnValue = sessions.find(x => x.session === e.sender.session).id;
+});
+
 export class ExtensibleSession {
   public extensions: { [key: string]: Extension } = {};
+
+  public id = id++;
 
   private _initialized = false;
 

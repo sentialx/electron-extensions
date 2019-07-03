@@ -6,7 +6,7 @@ import { IpcEvent } from './events/ipc-event';
 import { makeId } from '../../utils/string';
 import { IpcExtension } from '../../models/ipc-extension';
 
-export const getTabs = (extension: IpcExtension) => {
+export const getTabs = (extension: IpcExtension, sessionId: number) => {
   const tabs = {
     onCreated: new IpcEvent('tabs', 'onCreated'),
     onUpdated: new IpcEvent('tabs', 'onUpdated'),
@@ -29,7 +29,7 @@ export const getTabs = (extension: IpcExtension) => {
       queryInfo: chrome.tabs.QueryInfo,
       callback: (tabs: chrome.tabs.Tab[]) => void,
     ) => {
-      ipcRenderer.send('api-tabs-query');
+      ipcRenderer.send(`api-tabs-query-${sessionId}`);
 
       ipcRenderer.once(
         'api-tabs-query',
@@ -62,7 +62,7 @@ export const getTabs = (extension: IpcExtension) => {
       createProperties: chrome.tabs.CreateProperties,
       callback: (tab: chrome.tabs.Tab) => void = null,
     ) => {
-      ipcRenderer.send('api-tabs-create', createProperties);
+      ipcRenderer.send(`api-tabs-create-${sessionId}`, createProperties);
 
       if (callback) {
         ipcRenderer.once(
@@ -83,7 +83,7 @@ export const getTabs = (extension: IpcExtension) => {
           );
         }
 
-        ipcRenderer.send('api-tabs-insertCSS', tabId, details);
+        ipcRenderer.send(`api-tabs-insertCSS-${sessionId}`, tabId, details);
 
         ipcRenderer.once('api-tabs-insertCSS', () => {
           if (callback) {
@@ -111,7 +111,7 @@ export const getTabs = (extension: IpcExtension) => {
         }
 
         const responseId = makeId(32);
-        ipcRenderer.send('api-tabs-executeScript', {
+        ipcRenderer.send(`api-tabs-executeScript-${sessionId}`, {
           tabId,
           details,
           responseId,
@@ -140,7 +140,7 @@ export const getTabs = (extension: IpcExtension) => {
     },
 
     setZoom: (tabId: number, zoomFactor: number, callback: () => void) => {
-      ipcRenderer.send('api-tabs-setZoom', tabId, zoomFactor);
+      ipcRenderer.send(`api-tabs-setZoom-${sessionId}`, tabId, zoomFactor);
 
       ipcRenderer.once('api-tabs-setZoom', () => {
         if (callback) {
@@ -150,7 +150,7 @@ export const getTabs = (extension: IpcExtension) => {
     },
 
     getZoom: (tabId: number, callback: (zoomFactor: number) => void) => {
-      ipcRenderer.send('api-tabs-getZoom', tabId);
+      ipcRenderer.send(`api-tabs-getZoom-${sessionId}`, tabId);
 
       ipcRenderer.once(
         'api-tabs-getZoom',
@@ -163,7 +163,7 @@ export const getTabs = (extension: IpcExtension) => {
     },
 
     detectLanguage: (tabId: number, callback: (language: string) => void) => {
-      ipcRenderer.send('api-tabs-detectLanguage', tabId);
+      ipcRenderer.send(`api-tabs-detectLanguage-${sessionId}`, tabId);
 
       ipcRenderer.once(
         'api-tabs-detectLanguage',

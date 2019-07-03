@@ -12,9 +12,10 @@ const runContentScript = (
   code: string,
   extension: IpcExtension,
   worldId: number,
+  sessionId: number,
 ) => {
   const parsed = parse(url);
-  injectChromeApi(extension, worldId);
+  injectChromeApi(extension, worldId, sessionId);
 
   webFrame.executeJavaScriptInIsolatedWorld(worldId, [
     {
@@ -45,7 +46,11 @@ const runStylesheet = (url: string, code: string) => {
   return compiledWrapper.call(window, code);
 };
 
-export const injectContentScript = (script: any, extension: IpcExtension) => {
+export const injectContentScript = (
+  script: any,
+  extension: IpcExtension,
+  sessionId: number,
+) => {
   if (
     !script.matches.some((x: string) =>
       matchesPattern(
@@ -67,6 +72,7 @@ export const injectContentScript = (script: any, extension: IpcExtension) => {
         js.code,
         extension,
         getIsolatedWorldId(extension.id),
+        sessionId,
       );
 
       if (script.runAt === 'document_start') {
@@ -93,8 +99,12 @@ export const injectContentScript = (script: any, extension: IpcExtension) => {
   }
 };
 
-export const injectChromeApi = (extension: IpcExtension, worldId: number) => {
-  const context = getAPI(extension);
+export const injectChromeApi = (
+  extension: IpcExtension,
+  worldId: number,
+  sessionId: number,
+) => {
+  const context = getAPI(extension, sessionId);
 
   webFrame.setIsolatedWorldHumanReadableName(worldId, name);
   webFrame.executeJavaScriptInIsolatedWorld(

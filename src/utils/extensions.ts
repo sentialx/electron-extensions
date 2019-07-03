@@ -76,7 +76,7 @@ export const startBackgroundPage = async (
   }
 };
 
-export const sendToAllBackgroundPages = (
+export const sendToBackgroundPages = (
   main: ExtensionsMain,
   msg: string,
   ...args: any[]

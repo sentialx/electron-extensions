@@ -7,6 +7,8 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
 
+    "declaration": true,
+
     "module": "commonjs",
     "target": "es6",
     "allowJs": true,

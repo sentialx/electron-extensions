@@ -1,7 +1,7 @@
-import { WebRequestEvent } from '.';
+import { WebRequestEvent } from './events/web-request-event';
 
-export class WebRequest {
-  public ResourceType = {
+export const getWebRequest = () => ({
+  ResourceType: {
     CSP_REPORT: 'csp_report',
     FONT: 'font',
     IMAGE: 'image',
@@ -15,14 +15,14 @@ export class WebRequest {
     SUB_FRAME: 'sub_frame',
     WEBSOCKET: 'websocket',
     XMLHTTPREQUEST: 'xmlhttprequest',
-  };
+  },
 
-  public onBeforeRequest = new WebRequestEvent('onBeforeRequest');
-  public onBeforeSendHeaders = new WebRequestEvent('onBeforeSendHeaders');
-  public onHeadersReceived = new WebRequestEvent('onHeadersReceived');
-  public onSendHeaders = new WebRequestEvent('onSendHeaders');
-  public onResponseStarted = new WebRequestEvent('onResponseStarted');
-  public onBeforeRedirect = new WebRequestEvent('onBeforeRedirect');
-  public onCompleted = new WebRequestEvent('onCompleted');
-  public onErrorOccurred = new WebRequestEvent('onErrorOccurred');
-}
+  onBeforeRequest: new WebRequestEvent('onBeforeRequest'),
+  onBeforeSendHeaders: new WebRequestEvent('onBeforeSendHeaders'),
+  onHeadersReceived: new WebRequestEvent('onHeadersReceived'),
+  onSendHeaders: new WebRequestEvent('onSendHeaders'),
+  onResponseStarted: new WebRequestEvent('onResponseStarted'),
+  onBeforeRedirect: new WebRequestEvent('onBeforeRedirect'),
+  onCompleted: new WebRequestEvent('onCompleted'),
+  onErrorOccurred: new WebRequestEvent('onErrorOccurred'),
+});

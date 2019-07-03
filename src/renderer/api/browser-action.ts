@@ -1,38 +1,29 @@
 import { ipcRenderer } from 'electron';
-import { API, IpcEvent } from '.';
 
-let api: API;
+import { IpcExtension } from '../../models/ipc-extension';
+import { IpcEvent } from './events/ipc-event';
 
-// https://developer.chrome.com/extensions/browserAction
+export const getBrowserAction = (extension: IpcExtension) => ({
+  onClicked: new IpcEvent('browserAction', 'onClicked'),
 
-export class BrowserAction {
-  public onClicked = new IpcEvent('browserAction', 'onClicked');
-
-  constructor(_api: API) {
-    api = _api;
-  }
-
-  public setIcon = (details: chrome.browserAction.TabIconDetails, cb: any) => {
+  setIcon: (details: chrome.browserAction.TabIconDetails, cb: any) => {
     if (cb) cb();
-  };
+  },
 
-  public setBadgeBackgroundColor = (
+  setBadgeBackgroundColor: (
     details: chrome.browserAction.BadgeBackgroundColorDetails,
     cb: any,
   ) => {
     if (cb) cb();
-  };
+  },
 
-  public setBadgeText = (
-    details: chrome.browserAction.BadgeTextDetails,
-    cb: any,
-  ) => {
-    ipcRenderer.send('api-browserAction-setBadgeText', api.runtime.id, details);
+  setBadgeText: (details: chrome.browserAction.BadgeTextDetails, cb: any) => {
+    ipcRenderer.send('api-browserAction-setBadgeText', extension.id, details);
 
     if (cb) {
       ipcRenderer.once('api-browserAction-setBadgeText', () => {
         cb();
       });
     }
-  };
-}
+  },
+});

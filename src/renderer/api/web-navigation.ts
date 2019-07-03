@@ -1,26 +1,18 @@
-import { IpcEvent } from '.';
+import { IpcEvent } from './events/ipc-event';
 
-// https://developer.chrome.com/extensions/webNavigation
-
-export class WebNavigation {
-  public onBeforeNavigate = new IpcEvent('webNavigation', 'onBeforeNavigate');
-  public onCommitted = new IpcEvent('webNavigation', 'onCommitted');
-  public onDOMContentLoaded = new IpcEvent(
-    'webNavigation',
-    'onDOMContentLoaded',
-  );
-  public onCompleted = new IpcEvent('webNavigation', 'onCompleted');
-  public onCreatedNavigationTarget = new IpcEvent(
+export const getWebNavigation = () => ({
+  onBeforeNavigate: new IpcEvent('webNavigation', 'onBeforeNavigate'),
+  onCommitted: new IpcEvent('webNavigation', 'onCommitted'),
+  onDOMContentLoaded: new IpcEvent('webNavigation', 'onDOMContentLoaded'),
+  onCompleted: new IpcEvent('webNavigation', 'onCompleted'),
+  onCreatedNavigationTarget: new IpcEvent(
     'webNavigation',
     'onCreatedNavigationTarget',
-  );
-  public onReferenceFragmentUpdated = new IpcEvent(
+  ),
+  onReferenceFragmentUpdated: new IpcEvent(
     'webNavigation',
     'onReferenceFragmentUpdated',
-  ); // TODO
-  public onTabReplaced = new IpcEvent('webNavigation', 'onTabReplaced'); // TODO
-  public onHistoryStateUpdated = new IpcEvent(
-    'webNavigation',
-    'onHistoryStateUpdated',
-  ); // TODO
-}
+  ), // TODO
+  onTabReplaced: new IpcEvent('webNavigation', 'onTabReplaced'), // TODO
+  onHistoryStateUpdated: new IpcEvent('webNavigation', 'onHistoryStateUpdated'), // TODO
+});

@@ -1,25 +1,16 @@
-import { API } from '.';
+import { IpcExtension } from '../../models/ipc-extension';
 import { replaceAll } from '../../utils/string';
 
-// https://developer.chrome.com/extensions/i18n
-
-let api: API;
-
-export class I18n {
-  constructor(_api: API) {
-    api = _api;
-  }
-
-  public getAcceptLanguages = (cb: any) => {
+export const getI18n = (extension: IpcExtension) => ({
+  getAcceptLanguages: (cb: any) => {
     if (cb) {
       cb(navigator.languages);
     }
-  };
-
-  public getMessage = (messageName: string, substitutions?: any) => {
+  },
+  getMessage: (messageName: string, substitutions?: any) => {
     if (messageName === '@@ui_locale') return 'en_US';
 
-    const { locale } = api._extension;
+    const { locale } = extension;
     const substitutionsArray = substitutions instanceof Array;
 
     const item = locale[messageName];
@@ -46,13 +37,13 @@ export class I18n {
     }
 
     return message;
-  };
+  },
 
-  public getUILanguage = () => {
+  getUILanguage: () => {
     return navigator.language;
-  };
+  },
 
-  public detectLanguage = (text: string, cb: any) => {
+  detectLanguage: (text: string, cb: any) => {
     // TODO
     if (cb) {
       cb({
@@ -60,5 +51,5 @@ export class I18n {
         languages: [],
       });
     }
-  };
-}
+  },
+});

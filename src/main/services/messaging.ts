@@ -1,6 +1,9 @@
 import { webContents, ipcMain, IpcMessageEvent, Session } from 'electron';
+import {
+  getIpcExtension,
+  sendToAllBackgroundPages,
+} from '../../utils/extensions';
 import { ExtensionsMain } from '..';
-import { getIpcExtension, sendToAllBackgroundPages } from '../utils/extensions';
 
 const getWebContentsBySession = (ses: Session) => {
   return webContents.getAllWebContents().filter(x => x.session === ses);

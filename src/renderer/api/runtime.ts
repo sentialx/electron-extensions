@@ -1,11 +1,10 @@
+import { remote, ipcRenderer } from 'electron';
 import { format } from 'url';
-import { ipcRenderer, remote } from 'electron';
-import { API, Port, ApiEvent } from '.';
+
+import { IpcExtension } from '../../models/ipc-extension';
+import { LocalEvent } from './events/local-event';
 import { makeId } from '../../utils/string';
-
-// https://developer.chrome.com/extensions/runtime
-
-let api: API;
+import { Port } from '../../models/port';
 
 const getSender = (id: string): chrome.runtime.MessageSender => ({
   id,
@@ -14,21 +13,14 @@ const getSender = (id: string): chrome.runtime.MessageSender => ({
   tab: { id: remote.getCurrentWebContents().id } as any,
 });
 
-export class Runtime {
-  public id: string;
+export const getRuntime = (extension: IpcExtension) => ({
+  lastError: null as any,
+  id: extension.id,
+  onConnect: new LocalEvent(),
+  onMessage: new LocalEvent(),
 
-  public lastError: chrome.runtime.LastError; // TODO
-
-  public onConnect = new ApiEvent();
-  public onMessage = new ApiEvent();
-
-  constructor(_api: API) {
-    api = _api;
-    this.id = api._extension.id;
-  }
-
-  public sendMessage = (...args: any[]) => {
-    const sender = getSender(this.id);
+  sendMessage: (...args: any[]) => {
+    const sender = getSender(extension.id);
     const portId = makeId(32);
 
     let extensionId = args[0];
@@ -38,7 +30,7 @@ export class Runtime {
 
     if (typeof args[0] === 'object') {
       message = args[0];
-      extensionId = this.id;
+      extensionId = extension.id;
     }
 
     if (typeof args[1] === 'object') {
@@ -72,29 +64,29 @@ export class Runtime {
       sender,
       message,
     });
-  };
+  },
 
-  public connect = (arg1: string | any = null, arg2: any = null) => {
-    const sender = getSender(this.id);
+  connect: (...args: any[]) => {
+    const sender = getSender(extension.id);
     const portId = makeId(32);
 
     let name: string = null;
-    let extensionId: string = this.id;
+    let extensionId: string = extension.id;
 
-    if (typeof arg1 === 'string') {
-      extensionId = arg1;
+    if (typeof args[0] === 'string') {
+      extensionId = args[0];
 
-      if (arg2 && typeof arg2 === 'object') {
-        if (arg2.includeTlsChannelId) {
+      if (args[1] && typeof args[1] === 'object') {
+        if (args[1].includeTlsChannelId) {
           sender.tlsChannelId = portId;
         }
-        name = arg2.name;
+        name = args[1].name;
       }
-    } else if (arg1 && typeof arg1 === 'object') {
-      if (arg1.includeTlsChannelId) {
+    } else if (args[0] && typeof args[0] === 'object') {
+      if (args[0].includeTlsChannelId) {
         sender.tlsChannelId = portId;
       }
-      name = arg1.name;
+      name = args[0].name;
     }
 
     ipcRenderer.send('api-runtime-connect', {
@@ -105,22 +97,19 @@ export class Runtime {
     });
 
     return new Port(portId, name);
-  };
+  },
 
-  public reload = () => {
-    ipcRenderer.send('api-runtime-reload', this.id);
-  };
+  reload: () => {
+    ipcRenderer.send('api-runtime-reload', extension.id);
+  },
 
-  public getURL = (path: string) => {
-    return format({
+  getURL: (path: string) =>
+    format({
       protocol: 'electron-extension',
       slashes: true,
-      hostname: this.id,
+      hostname: extension.id,
       pathname: path,
-    });
-  };
+    }),
 
-  public getManifest = () => {
-    return api._extension.manifest;
-  };
-}
+  getManifest: () => extension.manifest,
+});

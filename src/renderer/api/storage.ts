@@ -1,11 +1,6 @@
 import { ipcRenderer } from 'electron';
 
-import { API } from '.';
 import { makeId } from '../../utils/string';
-
-// https://developer.chrome.com/extensions/storage
-
-let api: API;
 
 const sendStorageOperation = (
   extensionId: string,
@@ -33,35 +28,16 @@ const sendStorageOperation = (
   }
 };
 
-export class StorageArea {
-  private _area: string;
+const getStorageArea = (id: string, area: string) => ({
+  set: (arg: any, cb: any) => sendStorageOperation(id, arg, area, 'set', cb),
+  get: (arg: any, cb: any) => sendStorageOperation(id, arg, area, 'get', cb),
+  remove: (arg: any, cb: any) =>
+    sendStorageOperation(id, arg, area, 'remove', cb),
+  clear: (arg: any, cb: any) =>
+    sendStorageOperation(id, arg, area, 'clear', cb),
+});
 
-  constructor(area: string) {
-    this._area = area;
-  }
-
-  public set = (arg: any, cb: any) => {
-    sendStorageOperation(api.runtime.id, arg, this._area, 'set', cb);
-  };
-
-  public get = (arg: any, cb: any) => {
-    sendStorageOperation(api.runtime.id, arg, this._area, 'get', cb);
-  };
-
-  public remove = (arg: any, cb: any) => {
-    sendStorageOperation(api.runtime.id, arg, this._area, 'remove', cb);
-  };
-
-  public clear = (arg: any, cb: any) => {
-    sendStorageOperation(api.runtime.id, arg, this._area, 'clear', cb);
-  };
-}
-
-export class Storage {
-  public local = new StorageArea('local');
-  public managed = new StorageArea('managed');
-
-  constructor(_api: API) {
-    api = _api;
-  }
-}
+export const getStorage = (extensionId: string) => ({
+  local: getStorageArea(extensionId, 'local'),
+  managed: getStorageArea(extensionId, 'managed'),
+});

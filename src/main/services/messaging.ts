@@ -49,12 +49,12 @@ export const runMessagingService = (ses: ExtensibleSession) => {
         wc.send('api-tabs-create', newId, data);
       }
 
-      ipcMain.once(
-        `api-tabs-create-${newId}`,
-        (_: any, tab: chrome.tabs.Tab) => {
-          e.sender.send(`api-tabs-create-${responseId}`, tab);
-        },
-      );
+      ipcMain.once(`api-tabs-create-${newId}`, (_: any, tabId: number) => {
+        e.sender.send(
+          `api-tabs-create-${responseId}`,
+          webContentsToTab(webContents.fromId(tabId)),
+        );
+      });
     },
   );
 

@@ -1,17 +1,17 @@
-import { app, protocol } from 'electron';
+import { protocol } from 'electron';
 import { readFile } from 'fs';
 import { join } from 'path';
 import { parse } from 'url';
 import { ExtensibleSession } from '..';
 
-export const registerProtocols = (ses: ExtensibleSession) => {
-  protocol.registerSchemesAsPrivileged([
-    {
-      scheme: 'electron-extension',
-      privileges: { bypassCSP: true, secure: true },
-    },
-  ]);
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'electron-extension',
+    privileges: { bypassCSP: true, secure: true },
+  },
+]);
 
+export const registerProtocols = (ses: ExtensibleSession) => {
   ses.session.protocol.registerBufferProtocol(
     'electron-extension',
     (request, callback) => {

@@ -1,4 +1,4 @@
-import { ipcMain, Session, WebContents, webContents } from 'electron';
+import { ipcMain, WebContents, webContents } from 'electron';
 import enhanceWebRequest from 'electron-better-web-request';
 import { makeId } from '../../utils/string';
 import { ExtensibleSession } from '..';

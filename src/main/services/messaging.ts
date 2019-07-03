@@ -61,7 +61,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     'api-runtime-reload',
     (e: IpcMessageEvent, extensionId: string) => {
-      const { backgroundPage } = extensions[extensionId];
+      const { backgroundPage } = ses.extensions[extensionId];
 
       if (backgroundPage) {
         const contents = webContents.fromId(e.sender.id);
@@ -73,7 +73,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     'api-runtime-connect',
     async (e: IpcMessageEvent, { extensionId, portId, sender, name }: any) => {
-      const { backgroundPage } = extensions[extensionId];
+      const { backgroundPage } = ses.extensions[extensionId];
       const { webContents } = backgroundPage;
 
       if (e.sender.id !== webContents.id) {
@@ -90,7 +90,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     'api-runtime-sendMessage',
     async (e: IpcMessageEvent, data: any) => {
       const { extensionId } = data;
-      const { backgroundPage } = extensions[extensionId];
+      const { backgroundPage } = ses.extensions[extensionId];
       const { webContents } = backgroundPage;
 
       if (e.sender.id !== webContents.id) {
@@ -102,8 +102,8 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     'api-port-postMessage',
     (e: IpcMessageEvent, { portId, msg }: any) => {
-      Object.keys(extensions).forEach(key => {
-        const { backgroundPage } = extensions[key];
+      Object.keys(ses.extensions).forEach(key => {
+        const { backgroundPage } = ses.extensions[key];
         const contents = backgroundPage.webContents;
 
         if (e.sender.id !== contents.id) {
@@ -111,7 +111,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
         }
       });
 
-      const contents = getWebContentsBySession(main.session);
+      const contents = getWebContentsBySession(ses.session);
       for (const content of contents) {
         if (content.id !== e.sender.id) {
           content.send(`api-port-postMessage-${portId}`, msg);
@@ -123,7 +123,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     'api-storage-operation',
     (e: IpcMessageEvent, { extensionId, id, area, type, arg }: any) => {
-      const { databases } = main.extensions[extensionId];
+      const { databases } = ses.extensions[extensionId];
 
       const contents = webContents.fromId(e.sender.id);
       const msg = `api-storage-operation-${id}`;
@@ -158,7 +158,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     const contents = webContents.fromId(e.sender.id);
 
     if (type === 'create') {
-      const extension = main.extensions[extensionId];
+      const extension = ses.extensions[extensionId];
       const { alarms } = extension;
 
       const { name, alarmInfo } = data;
@@ -216,7 +216,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     'send-to-all-extensions',
     (e: IpcMessageEvent, msg: string, ...args: any[]) => {
-      sendToAllBackgroundPages(main, msg, ...args);
+      sendToAllBackgroundPages(ses, msg, ...args);
       // TODO: UI
       // appWindow.viewManager.sendToAll(msg, ...args);
     },
@@ -225,6 +225,6 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on('emit-tabs-event', (e: any, name: string, ...data: any[]) => {
     // TODO: UI
     // appWindow.viewManager.sendToAll(`api-emit-event-tabs-${name}`, ...data);
-    sendToAllBackgroundPages(main, `api-emit-event-tabs-${name}`, ...data);
+    sendToAllBackgroundPages(ses, `api-emit-event-tabs-${name}`, ...data);
   });
 };

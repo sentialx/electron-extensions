@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import { format } from 'url';
 import { Extension } from '../models/extension';
 import { IpcExtension } from '../models/ipc-extension';
-import { ExtensionsMain } from '../main';
+import { ExtensibleSession } from '../main';
 
 export const getIpcExtension = (extension: Extension): IpcExtension => {
   const ipcExtension: Extension = { ...extension };
@@ -45,7 +45,7 @@ export const startBackgroundPage = async (
     }
 
     const contents: WebContents = (webContents as any).create({
-      partition: 'persist:wexond_extension',
+      partition: 'persist:electron-extension',
       isBackgroundPage: true,
       preload: resolve(__dirname, '../..', 'renderer/background/index.js'),
       commandLineSwitches: ['--background-page'],
@@ -77,12 +77,12 @@ export const startBackgroundPage = async (
 };
 
 export const sendToAllBackgroundPages = (
-  main: ExtensionsMain,
+  ses: ExtensibleSession,
   msg: string,
   ...args: any[]
 ) => {
-  for (const key in main.extensions) {
-    const { webContents } = main.extensions[key].backgroundPage;
+  for (const key in ses.extensions) {
+    const { webContents } = ses.extensions[key].backgroundPage;
     webContents.send(msg, ...args);
   }
 };

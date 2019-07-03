@@ -3,19 +3,19 @@ import {
   getIpcExtension,
   sendToAllBackgroundPages,
 } from '../../utils/extensions';
-import { ExtensionsMain } from '..';
+import { ExtensibleSession } from '..';
 
 const getWebContentsBySession = (ses: Session) => {
   return webContents.getAllWebContents().filter(x => x.session === ses);
 };
 
-export const runMessagingService = (main: ExtensionsMain) => {
+export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on('get-extension', (e: IpcMessageEvent, id: string) => {
-    e.returnValue = getIpcExtension(main.extensions[id]);
+    e.returnValue = getIpcExtension(ses.extensions[id]);
   });
 
   ipcMain.on('get-extensions', (e: IpcMessageEvent) => {
-    const list = { ...main.extensions };
+    const list = { ...ses.extensions };
 
     for (const key in list) {
       list[key] = getIpcExtension(list[key]);
@@ -61,7 +61,7 @@ export const runMessagingService = (main: ExtensionsMain) => {
   ipcMain.on(
     'api-runtime-reload',
     (e: IpcMessageEvent, extensionId: string) => {
-      const { backgroundPage } = main.extensions[extensionId];
+      const { backgroundPage } = extensions[extensionId];
 
       if (backgroundPage) {
         const contents = webContents.fromId(e.sender.id);
@@ -73,7 +73,7 @@ export const runMessagingService = (main: ExtensionsMain) => {
   ipcMain.on(
     'api-runtime-connect',
     async (e: IpcMessageEvent, { extensionId, portId, sender, name }: any) => {
-      const { backgroundPage } = main.extensions[extensionId];
+      const { backgroundPage } = extensions[extensionId];
       const { webContents } = backgroundPage;
 
       if (e.sender.id !== webContents.id) {
@@ -90,7 +90,7 @@ export const runMessagingService = (main: ExtensionsMain) => {
     'api-runtime-sendMessage',
     async (e: IpcMessageEvent, data: any) => {
       const { extensionId } = data;
-      const { backgroundPage } = main.extensions[extensionId];
+      const { backgroundPage } = extensions[extensionId];
       const { webContents } = backgroundPage;
 
       if (e.sender.id !== webContents.id) {
@@ -102,8 +102,8 @@ export const runMessagingService = (main: ExtensionsMain) => {
   ipcMain.on(
     'api-port-postMessage',
     (e: IpcMessageEvent, { portId, msg }: any) => {
-      Object.keys(main.extensions).forEach(key => {
-        const { backgroundPage } = main.extensions[key];
+      Object.keys(extensions).forEach(key => {
+        const { backgroundPage } = extensions[key];
         const contents = backgroundPage.webContents;
 
         if (e.sender.id !== contents.id) {

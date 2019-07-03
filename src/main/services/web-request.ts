@@ -1,6 +1,7 @@
 import { ipcMain, Session, WebContents, webContents } from 'electron';
 import enhanceWebRequest from 'electron-better-web-request';
 import { makeId } from '../../utils/string';
+import { ExtensibleSession } from '..';
 
 const eventListeners: { [key: string]: Function } = {};
 
@@ -142,8 +143,8 @@ const resolver = (listeners: any) => {
   return response;
 };
 
-export const runWebRequestService = (ses: Session) => {
-  const { webRequest } = enhanceWebRequest(ses);
+export const runWebRequestService = (ses: ExtensibleSession) => {
+  const { webRequest } = enhanceWebRequest(ses.session);
 
   // Handle listener add and remove.
 

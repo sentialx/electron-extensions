@@ -18,6 +18,7 @@ import {
   loadDevToolsExtensions,
   loadExtension,
   extensionsToManifests,
+  getIpcExtension,
 } from '../utils/extensions';
 import {
   hookWebContentsEvents,
@@ -143,6 +144,19 @@ export class ExtensibleSession {
           'api-emit-event-browserAction-onClicked',
           tab,
         );
+      },
+    );
+
+    ipcMain.on(
+      `get-extensions-${window.webContents.id}`,
+      (e: IpcMessageEvent) => {
+        const list = { ...this.extensions };
+
+        for (const key in list) {
+          list[key] = getIpcExtension(list[key]);
+        }
+
+        e.returnValue = list;
       },
     );
   }

@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { ipcRenderer, IpcMessageEvent, remote } from 'electron';
+import { IpcExtension } from '../models/ipc-extension';
 
 let webContentsId = -1;
 
@@ -68,6 +69,10 @@ export class ExtensionsRenderer extends EventEmitter {
         ipcRenderer.send(`api-browserAction-setBadgeText-${responseId}`);
       },
     );
+  }
+
+  public getExtensions(): { [key: string]: IpcExtension } {
+    return ipcRenderer.sendSync(`get-extensions-${webContentsId}`);
   }
 }
 

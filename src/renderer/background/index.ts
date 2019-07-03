@@ -18,13 +18,15 @@ ipcRenderer.setMaxListeners(0);
 
 const extensionId = parse(window.location.href).hostname;
 
+const sessionId: number = ipcRenderer.sendSync('get-session-id');
+
 const extension: IpcExtension = ipcRenderer.sendSync(
-  'get-extension',
+  `get-extension-${sessionId}`,
   extensionId,
 );
 
 process.once('loaded', () => {
-  const api = getAPI(extension);
+  const api = getAPI(extension, sessionId);
 
   window.chrome = api;
   window.browser = api;

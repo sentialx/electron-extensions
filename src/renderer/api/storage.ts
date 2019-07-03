@@ -8,9 +8,10 @@ const sendStorageOperation = (
   area: string,
   type: string,
   callback: any,
+  sessionId: number,
 ) => {
   const id = makeId(32);
-  ipcRenderer.send('api-storage-operation', {
+  ipcRenderer.send(`api-storage-operation-${sessionId}`, {
     extensionId,
     id,
     arg,
@@ -28,16 +29,18 @@ const sendStorageOperation = (
   }
 };
 
-const getStorageArea = (id: string, area: string) => ({
-  set: (arg: any, cb: any) => sendStorageOperation(id, arg, area, 'set', cb),
-  get: (arg: any, cb: any) => sendStorageOperation(id, arg, area, 'get', cb),
+const getStorageArea = (id: string, area: string, sessionId: number) => ({
+  set: (arg: any, cb: any) =>
+    sendStorageOperation(id, arg, area, 'set', cb, sessionId),
+  get: (arg: any, cb: any) =>
+    sendStorageOperation(id, arg, area, 'get', cb, sessionId),
   remove: (arg: any, cb: any) =>
-    sendStorageOperation(id, arg, area, 'remove', cb),
+    sendStorageOperation(id, arg, area, 'remove', cb, sessionId),
   clear: (arg: any, cb: any) =>
-    sendStorageOperation(id, arg, area, 'clear', cb),
+    sendStorageOperation(id, arg, area, 'clear', cb, sessionId),
 });
 
-export const getStorage = (extensionId: string) => ({
-  local: getStorageArea(extensionId, 'local'),
-  managed: getStorageArea(extensionId, 'managed'),
+export const getStorage = (extensionId: string, sessionId: number) => ({
+  local: getStorageArea(extensionId, 'local', sessionId),
+  managed: getStorageArea(extensionId, 'managed', sessionId),
 });

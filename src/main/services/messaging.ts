@@ -3,19 +3,19 @@ import {
   getIpcExtension,
   sendToAllBackgroundPages,
 } from '../../utils/extensions';
-import { ExtensionsMain } from '..';
+import { ExtensibleSession } from '..';
 
 const getWebContentsBySession = (ses: Session) => {
   return webContents.getAllWebContents().filter(x => x.session === ses);
 };
 
-export const runMessagingService = (main: ExtensionsMain) => {
-  ipcMain.on('get-extension', (e: IpcMessageEvent, id: string) => {
-    e.returnValue = getIpcExtension(main.extensions[id]);
+export const runMessagingService = (ses: ExtensibleSession) => {
+  ipcMain.on(`get-extension-${ses.id}`, (e: IpcMessageEvent, id: string) => {
+    e.returnValue = getIpcExtension(ses.extensions[id]);
   });
 
-  ipcMain.on('get-extensions', (e: IpcMessageEvent) => {
-    const list = { ...main.extensions };
+  ipcMain.on(`get-extensions-${ses.id}`, (e: IpcMessageEvent) => {
+    const list = { ...ses.extensions };
 
     for (const key in list) {
       list[key] = getIpcExtension(list[key]);
@@ -24,13 +24,13 @@ export const runMessagingService = (main: ExtensionsMain) => {
     e.returnValue = list;
   });
 
-  ipcMain.on('api-tabs-query', (e: Electron.IpcMessageEvent) => {
+  ipcMain.on(`api-tabs-query-${ses.id}`, (e: Electron.IpcMessageEvent) => {
     // TODO:
     // appWindow.webContents.send("api-tabs-query", e.sender.id);
   });
 
   ipcMain.on(
-    'api-tabs-create',
+    `api-tabs-create-${ses.id}`,
     (e: IpcMessageEvent, data: chrome.tabs.CreateProperties) => {
       // TODO:
       // appWindow.webContents.send("api-tabs-create", data, e.sender.id);
@@ -38,7 +38,7 @@ export const runMessagingService = (main: ExtensionsMain) => {
   );
 
   ipcMain.on(
-    'api-tabs-insertCSS',
+    `api-tabs-insertCSS-${ses.id}`,
     (e: IpcMessageEvent, tabId: number, details: chrome.tabs.InjectDetails) => {
       const contents = webContents.fromId(tabId);
 
@@ -49,19 +49,22 @@ export const runMessagingService = (main: ExtensionsMain) => {
     },
   );
 
-  ipcMain.on('api-tabs-executeScript', (e: IpcMessageEvent, data: any) => {
-    const { tabId } = data;
-    const contents = webContents.fromId(tabId);
+  ipcMain.on(
+    `api-tabs-executeScript-${ses.id}`,
+    (e: IpcMessageEvent, data: any) => {
+      const { tabId } = data;
+      const contents = webContents.fromId(tabId);
 
-    if (contents) {
-      contents.send('execute-script-isolated', data, e.sender.id);
-    }
-  });
+      if (contents) {
+        contents.send('execute-script-isolated', data, e.sender.id);
+      }
+    },
+  );
 
   ipcMain.on(
-    'api-runtime-reload',
+    `api-runtime-reload-${ses.id}`,
     (e: IpcMessageEvent, extensionId: string) => {
-      const { backgroundPage } = main.extensions[extensionId];
+      const { backgroundPage } = ses.extensions[extensionId];
 
       if (backgroundPage) {
         const contents = webContents.fromId(e.sender.id);
@@ -71,9 +74,9 @@ export const runMessagingService = (main: ExtensionsMain) => {
   );
 
   ipcMain.on(
-    'api-runtime-connect',
+    `api-runtime-connect-${ses.id}`,
     async (e: IpcMessageEvent, { extensionId, portId, sender, name }: any) => {
-      const { backgroundPage } = main.extensions[extensionId];
+      const { backgroundPage } = ses.extensions[extensionId];
       const { webContents } = backgroundPage;
 
       if (e.sender.id !== webContents.id) {
@@ -87,10 +90,10 @@ export const runMessagingService = (main: ExtensionsMain) => {
   );
 
   ipcMain.on(
-    'api-runtime-sendMessage',
+    `api-runtime-sendMessage--${ses.id}`,
     async (e: IpcMessageEvent, data: any) => {
       const { extensionId } = data;
-      const { backgroundPage } = main.extensions[extensionId];
+      const { backgroundPage } = ses.extensions[extensionId];
       const { webContents } = backgroundPage;
 
       if (e.sender.id !== webContents.id) {
@@ -100,10 +103,10 @@ export const runMessagingService = (main: ExtensionsMain) => {
   );
 
   ipcMain.on(
-    'api-port-postMessage',
+    `api-port-postMessage-${ses.id}`,
     (e: IpcMessageEvent, { portId, msg }: any) => {
-      Object.keys(main.extensions).forEach(key => {
-        const { backgroundPage } = main.extensions[key];
+      Object.keys(ses.extensions).forEach(key => {
+        const { backgroundPage } = ses.extensions[key];
         const contents = backgroundPage.webContents;
 
         if (e.sender.id !== contents.id) {
@@ -111,7 +114,7 @@ export const runMessagingService = (main: ExtensionsMain) => {
         }
       });
 
-      const contents = getWebContentsBySession(main.session);
+      const contents = getWebContentsBySession(ses.session);
       for (const content of contents) {
         if (content.id !== e.sender.id) {
           content.send(`api-port-postMessage-${portId}`, msg);
@@ -121,9 +124,9 @@ export const runMessagingService = (main: ExtensionsMain) => {
   );
 
   ipcMain.on(
-    'api-storage-operation',
+    `api-storage-operation-${ses.id}`,
     (e: IpcMessageEvent, { extensionId, id, area, type, arg }: any) => {
-      const { databases } = main.extensions[extensionId];
+      const { databases } = ses.extensions[extensionId];
 
       const contents = webContents.fromId(e.sender.id);
       const msg = `api-storage-operation-${id}`;
@@ -153,54 +156,57 @@ export const runMessagingService = (main: ExtensionsMain) => {
     },
   );
 
-  ipcMain.on('api-alarms-operation', (e: IpcMessageEvent, data: any) => {
-    const { extensionId, type } = data;
-    const contents = webContents.fromId(e.sender.id);
+  ipcMain.on(
+    `api-alarms-operation-${ses.id}`,
+    (e: IpcMessageEvent, data: any) => {
+      const { extensionId, type } = data;
+      const contents = webContents.fromId(e.sender.id);
 
-    if (type === 'create') {
-      const extension = main.extensions[extensionId];
-      const { alarms } = extension;
+      if (type === 'create') {
+        const extension = ses.extensions[extensionId];
+        const { alarms } = extension;
 
-      const { name, alarmInfo } = data;
-      const exists = alarms.findIndex(e => e.name === name) !== -1;
+        const { name, alarmInfo } = data;
+        const exists = alarms.findIndex(e => e.name === name) !== -1;
 
-      e.returnValue = null;
-      if (exists) return;
+        e.returnValue = null;
+        if (exists) return;
 
-      let scheduledTime = 0;
+        let scheduledTime = 0;
 
-      if (alarmInfo.when != null) {
-        scheduledTime = alarmInfo.when;
-      }
-
-      if (alarmInfo.delayInMinutes != null) {
-        if (alarmInfo.delayInMinutes < 1) {
-          return console.error(
-            `Alarm delay is less than minimum of 1 minutes. In released .crx, alarm "${name}" will fire in approximately 1 minutes.`,
-          );
+        if (alarmInfo.when != null) {
+          scheduledTime = alarmInfo.when;
         }
 
-        scheduledTime = Date.now() + alarmInfo.delayInMinutes * 60000;
+        if (alarmInfo.delayInMinutes != null) {
+          if (alarmInfo.delayInMinutes < 1) {
+            return console.error(
+              `Alarm delay is less than minimum of 1 minutes. In released .crx, alarm "${name}" will fire in approximately 1 minutes.`,
+            );
+          }
+
+          scheduledTime = Date.now() + alarmInfo.delayInMinutes * 60000;
+        }
+
+        const alarm: chrome.alarms.Alarm = {
+          periodInMinutes: alarmInfo.periodInMinutes,
+          scheduledTime,
+          name,
+        };
+
+        alarms.push(alarm);
+
+        if (!alarm.periodInMinutes) {
+          setTimeout(() => {
+            contents.send('api-emit-event-alarms-onAlarm', alarm);
+          }, alarm.scheduledTime - Date.now());
+        }
       }
-
-      const alarm: chrome.alarms.Alarm = {
-        periodInMinutes: alarmInfo.periodInMinutes,
-        scheduledTime,
-        name,
-      };
-
-      alarms.push(alarm);
-
-      if (!alarm.periodInMinutes) {
-        setTimeout(() => {
-          contents.send('api-emit-event-alarms-onAlarm', alarm);
-        }, alarm.scheduledTime - Date.now());
-      }
-    }
-  });
+    },
+  );
 
   ipcMain.on(
-    'api-browserAction-setBadgeText',
+    `api-browserAction-setBadgeText-${ses.id}`,
     (e: IpcMessageEvent, ...args: any[]) => {
       /*
     TODO:
@@ -214,17 +220,23 @@ export const runMessagingService = (main: ExtensionsMain) => {
   );
 
   ipcMain.on(
-    'send-to-all-extensions',
+    `send-to-all-extensions-${ses.id}`,
     (e: IpcMessageEvent, msg: string, ...args: any[]) => {
-      sendToAllBackgroundPages(main, msg, ...args);
-      // TODO: UI
-      // appWindow.viewManager.sendToAll(msg, ...args);
+      sendToAllBackgroundPages(ses, msg, ...args);
+
+      const contents = getWebContentsBySession(ses.session);
+      for (const content of contents) {
+        content.send(msg, ...args);
+      }
     },
   );
 
-  ipcMain.on('emit-tabs-event', (e: any, name: string, ...data: any[]) => {
-    // TODO: UI
-    // appWindow.viewManager.sendToAll(`api-emit-event-tabs-${name}`, ...data);
-    sendToAllBackgroundPages(main, `api-emit-event-tabs-${name}`, ...data);
-  });
+  ipcMain.on(
+    `emit-tabs-event-${ses.id}`,
+    (e: any, name: string, ...data: any[]) => {
+      // TODO: UI
+      // appWindow.viewManager.sendToAll(`api-emit-event-tabs-${name}`, ...data);
+      sendToAllBackgroundPages(ses, `api-emit-event-tabs-${name}`, ...data);
+    },
+  );
 };

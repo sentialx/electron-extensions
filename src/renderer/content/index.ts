@@ -6,8 +6,10 @@ import { IpcExtension } from '../../models/ipc-extension';
 import { getIsolatedWorldId } from '../../utils/isolated-worlds';
 import { injectContentScript, injectChromeApi } from './inject';
 
+const sessionId: number = ipcRenderer.sendSync('get-session-id');
+
 const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
-  'get-extensions',
+  `get-extensions-${sessionId}`,
 );
 
 webFrame.executeJavaScript('window', false, w => {
@@ -34,7 +36,7 @@ ipcRenderer.on(
     webContentsId: number,
   ) => {
     const worldId = getIsolatedWorldId(extensionId);
-    injectChromeApi(extensions[extensionId], worldId);
+    injectChromeApi(extensions[extensionId], worldId, sessionId);
 
     webFrame.executeJavaScriptInIsolatedWorld(
       worldId,
@@ -77,7 +79,7 @@ process.once('loaded', () => {
             runAt: script.run_at || 'document_idle',
           };
 
-          injectContentScript(newScript, extension);
+          injectContentScript(newScript, extension, sessionId);
         });
       } catch (readError) {
         console.error('Failed to read content scripts', readError);

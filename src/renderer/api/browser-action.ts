@@ -3,7 +3,10 @@ import { ipcRenderer } from 'electron';
 import { IpcExtension } from '../../models/ipc-extension';
 import { IpcEvent } from './events/ipc-event';
 
-export const getBrowserAction = (extension: IpcExtension) => ({
+export const getBrowserAction = (
+  extension: IpcExtension,
+  sessionId: number,
+) => ({
   onClicked: new IpcEvent('browserAction', 'onClicked'),
 
   setIcon: (details: chrome.browserAction.TabIconDetails, cb: any) => {
@@ -18,7 +21,11 @@ export const getBrowserAction = (extension: IpcExtension) => ({
   },
 
   setBadgeText: (details: chrome.browserAction.BadgeTextDetails, cb: any) => {
-    ipcRenderer.send('api-browserAction-setBadgeText', extension.id, details);
+    ipcRenderer.send(
+      `api-browserAction-setBadgeText-${sessionId}`,
+      extension.id,
+      details,
+    );
 
     if (cb) {
       ipcRenderer.once('api-browserAction-setBadgeText', () => {

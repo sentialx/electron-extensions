@@ -1,4 +1,4 @@
-import { Session } from 'electron';
+import { Session, IpcMessageEvent, ipcMain } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
@@ -10,27 +10,35 @@ import { runMessagingService } from './services/messaging';
 import { StorageArea } from '../models/storage-area';
 import { startBackgroundPage } from '../utils/extensions';
 
-export class ExtensionsMain {
+let id = 1;
+
+const sessions: ExtensibleSession[] = [];
+
+ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
+  e.returnValue = sessions.find(x => x.session === e.sender.session).id;
+});
+
+export class ExtensibleSession {
   public extensions: { [key: string]: Extension } = {};
 
-  public session: Session;
+  public id = id++;
 
-  constructor() {
+  private _initialized = false;
+
+  constructor(public session: Session) {
     registerProtocols(this);
   }
 
-  public setSession(ses: Session) {
-    this.session = ses;
-    ses.setPreloads([`${__dirname}/../renderer/content/index.js`]);
+  async loadExtension(dir: string, { devtools } = { devtools: false }) {
+    if (!this._initialized) {
+      this.session.setPreloads([`${__dirname}/../renderer/content/index.js`]);
 
-    runWebRequestService(ses);
-    runMessagingService(this);
-  }
+      runWebRequestService(this);
+      runMessagingService(this);
 
-  public async load(
-    dir: string,
-    { devtools }: { devtools: boolean } = { devtools: false },
-  ) {
+      this._initialized = true;
+    }
+
     const stats = await promises.stat(dir);
 
     if (!stats.isDirectory()) throw new Error('Given path is not a directory');
@@ -89,5 +97,3 @@ export class ExtensionsMain {
     startBackgroundPage(extension, devtools);
   }
 }
-
-export const extensionsMain = new ExtensionsMain();

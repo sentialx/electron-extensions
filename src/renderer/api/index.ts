@@ -10,13 +10,13 @@ import { getBrowserAction } from './browser-action';
 import { getWebRequest } from './web-request';
 import { getWebNavigation } from './web-navigation';
 
-export const getAPI = (extension: IpcExtension) => {
+export const getAPI = (extension: IpcExtension, sessionId: number) => {
   const api = {
-    runtime: getRuntime(extension),
-    storage: getStorage(extension.id),
-    tabs: getTabs(extension),
+    runtime: getRuntime(extension, sessionId),
+    storage: getStorage(extension.id, sessionId),
+    tabs: getTabs(extension, sessionId),
     i18n: getI18n(extension),
-    browserAction: getBrowserAction(extension),
+    browserAction: getBrowserAction(extension, sessionId),
     webRequest: getWebRequest(),
     webNavigation: getWebNavigation(),
 

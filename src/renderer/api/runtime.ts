@@ -13,7 +13,7 @@ const getSender = (id: string): chrome.runtime.MessageSender => ({
   tab: { id: remote.getCurrentWebContents().id } as any,
 });
 
-export const getRuntime = (extension: IpcExtension) => ({
+export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   lastError: null as any,
   id: extension.id,
   onConnect: new LocalEvent(),
@@ -58,7 +58,7 @@ export const getRuntime = (extension: IpcExtension) => ({
       );
     }
 
-    ipcRenderer.send('api-runtime-sendMessage', {
+    ipcRenderer.send(`api-runtime-sendMessage-${sessionId}`, {
       extensionId,
       portId,
       sender,
@@ -89,7 +89,7 @@ export const getRuntime = (extension: IpcExtension) => ({
       name = args[0].name;
     }
 
-    ipcRenderer.send('api-runtime-connect', {
+    ipcRenderer.send(`api-runtime-connect-${sessionId}`, {
       extensionId,
       portId,
       sender,
@@ -100,7 +100,7 @@ export const getRuntime = (extension: IpcExtension) => ({
   },
 
   reload: () => {
-    ipcRenderer.send('api-runtime-reload', extension.id);
+    ipcRenderer.send(`api-runtime-reload-${sessionId}`, extension.id);
   },
 
   getURL: (path: string) =>

@@ -1,5 +1,5 @@
 import { ipcMain, WebContents, webContents } from 'electron';
-import enhanceWebRequest from 'electron-better-web-request';
+import enhanceWebRequest from '../../models/web-request';
 import { makeId } from '../../utils/string';
 import { ExtensibleSession } from '..';
 
@@ -126,23 +126,6 @@ const interceptRequest = (
   }
 };
 
-const resolver = (listeners: any) => {
-  const response = listeners.reverse().reduce(
-    async (accumulator: any, element: any) => {
-      if (accumulator.cancel) {
-        return accumulator;
-      }
-
-      const result = await element.apply();
-
-      return { ...accumulator, ...result };
-    },
-    { cancel: false },
-  );
-
-  return response;
-};
-
 export const runWebRequestService = (ses: ExtensibleSession) => {
   const { webRequest } = enhanceWebRequest(ses.session);
 
@@ -188,10 +171,8 @@ export const runWebRequestService = (ses: ExtensibleSession) => {
     if (filters) {
       (webRequest as any)[name](filters, eventListeners[id]);
     } else {
-      (webRequest as any)[name]({ urls: ['<all_urls>'] }, eventListeners[id]);
+      (webRequest as any)[name](eventListeners[id]);
     }
-
-    (webRequest as any).setResolver(name, resolver);
   });
 
   ipcMain.on('api-remove-webRequest-listener', (e: any, data: any) => {

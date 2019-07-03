@@ -3,8 +3,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 import { IpcExtension } from '../../models/ipc-extension';
-import { getIsolatedWorldId } from '../../utils/isolated-worlds';
-import { injectContentScript, injectChromeApi } from './inject';
+import { injectContentScript } from './inject';
 
 const sessionId: number = ipcRenderer.sendSync('get-session-id');
 
@@ -27,33 +26,6 @@ webFrame.executeJavaScript('window', false, w => {
     },
   };
 });
-
-ipcRenderer.on(
-  'execute-script-isolated',
-  (
-    e: IpcMessageEvent,
-    { details, extensionId, responseId }: any,
-    webContentsId: number,
-  ) => {
-    const worldId = getIsolatedWorldId(extensionId);
-    injectChromeApi(extensions[extensionId], worldId, sessionId);
-
-    webFrame.executeJavaScriptInIsolatedWorld(
-      worldId,
-      [
-        {
-          code: details.code,
-        },
-      ],
-      false,
-      (result: any) => {
-        remote.webContents
-          .fromId(webContentsId)
-          .send(`api-tabs-executeScript-${responseId}`, result);
-      },
-    );
-  },
-);
 
 const setImmediateTemp: any = setImmediate;
 

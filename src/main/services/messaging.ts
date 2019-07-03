@@ -46,11 +46,13 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     `api-tabs-executeScript-${ses.id}`,
     (e: IpcMessageEvent, data: any) => {
-      const { tabId } = data;
+      const { tabId, code } = data;
       const contents = webContents.fromId(tabId);
 
       if (contents) {
-        contents.send('execute-script-isolated', data, e.sender.id);
+        contents.executeJavaScript(data.details.code, false, (result: any) => {
+          e.sender.send(`api-tabs-executeScript-${data.responseId}`, result);
+        });
       }
     },
   );

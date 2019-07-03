@@ -27,13 +27,10 @@ export const getIpcExtension = (extension: Extension): IpcExtension => {
 };
 
 export const startBackgroundPage = async (
-  extension: Extension,
-  devtools: boolean = false,
+  { background, srcDirectory, extensionId }: chrome.runtime.Manifest,
+  sessionId: number,
 ) => {
-  const { manifest, path, id } = extension;
-
-  if (manifest.background) {
-    const { background } = manifest;
+  if (background) {
     const { page, scripts } = background;
 
     let html = Buffer.from('');
@@ -41,7 +38,7 @@ export const startBackgroundPage = async (
 
     if (page) {
       fileName = page;
-      html = await promises.readFile(resolve(manifest.srcDirectory, page));
+      html = await promises.readFile(resolve(srcDirectory, page));
     } else if (scripts) {
       fileName = 'generated.html';
       html = Buffer.from(
@@ -56,9 +53,9 @@ export const startBackgroundPage = async (
     }
 
     const contents: WebContents = (webContents as any).create({
-      partition: 'persist:electron-extension',
+      partition: `persist:electron-extension-${sessionId}`,
       isBackgroundPage: true,
-      preload: resolve(__dirname, '../..', 'renderer/background/index.js'),
+      preload: resolve(__dirname, '..', 'renderer/background/index.js'),
       commandLineSwitches: ['--background-page'],
       webPreferences: {
         nodeIntegration: true,
@@ -66,25 +63,22 @@ export const startBackgroundPage = async (
       },
     });
 
-    if (devtools) {
-      contents.openDevTools();
-    }
-
-    extension.backgroundPage = {
-      html,
-      fileName,
-      webContents: contents,
-    };
-
     contents.loadURL(
       format({
         protocol: 'electron-extension',
         slashes: true,
-        hostname: id,
+        hostname: extensionId,
         pathname: fileName,
       }),
     );
+
+    return {
+      html,
+      fileName,
+      webContents: contents,
+    };
   }
+  return null;
 };
 
 export const sendToBackgroundPages = (
@@ -129,17 +123,19 @@ const loadI18n = async (manifest: chrome.runtime.Manifest) => {
   }
 };
 
-export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
+export const loadExtension = async (
+  manifest: chrome.runtime.Manifest,
+  sessionId: number,
+) => {
   const extension: Extension = {
     manifest,
     alarms: [],
     databases: loadStorages(manifest),
-    locale: loadI18n(manifest),
+    locale: await loadI18n(manifest),
     id: manifest.extensionId,
     path: manifest.srcDirectory,
+    backgroundPage: await startBackgroundPage(manifest, sessionId),
   };
-
-  startBackgroundPage(extension);
 
   return extension;
 };

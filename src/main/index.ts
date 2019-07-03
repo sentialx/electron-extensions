@@ -25,10 +25,13 @@ import {
   webContentsValid,
   webContentsToTab,
 } from '../utils/web-contents';
+import { BackgroundPage } from '../models/background-page';
 
 let id = 1;
 
 const sessions: ExtensibleSession[] = [];
+
+export const backgroundPages: BackgroundPage[] = [];
 
 ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
   e.returnValue = sessions.find(x => x.session === e.sender.session).id;
@@ -97,8 +100,9 @@ export class ExtensibleSession {
     manifest.srcDirectory = dir;
     manifest.extensionId = id;
 
-    const extension = await loadExtension(manifest);
+    const extension = await loadExtension(manifest, this.id);
     this.extensions[id] = extension;
+    backgroundPages.push(extension.backgroundPage);
 
     const webContents = getAllWebContentsInSession(this.session);
 

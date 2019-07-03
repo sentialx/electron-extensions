@@ -1,4 +1,4 @@
-import { webContents, ipcMain, IpcMessageEvent } from 'electron';
+import { webContents, ipcMain, IpcMessageEvent, BrowserWindow } from 'electron';
 import { getIpcExtension, sendToBackgroundPages } from '../../utils/extensions';
 import { ExtensibleSession } from '..';
 import {
@@ -6,7 +6,6 @@ import {
   webContentsToTab,
 } from '../../utils/web-contents';
 import { makeId } from '../../utils/string';
-import { findWindowByWebContents } from '../../utils/windows';
 
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e: IpcMessageEvent, id: string) => {
@@ -36,17 +35,23 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       e: IpcMessageEvent,
       responseId: string,
       data: chrome.tabs.CreateProperties,
+      windowId: number,
     ) => {
       const newId = makeId(32);
+      const type = e.sender.getType();
 
       if (data.windowId) {
         const wc = ses.webContents.find(x => x.id === data.windowId);
         wc.send('api-tabs-create', newId, data);
-      } else if (e.sender.getType() === 'backgroundPage') {
+      } else if (type === 'backgroundPage') {
         ses.lastActiveWebContents.send('api-tabs-create', newId, data);
-      } else {
-        const wc = findWindowByWebContents(e.sender);
-        wc.send('api-tabs-create', newId, data);
+      } else if (type === 'browserView') {
+        const bw = BrowserWindow.fromId(windowId);
+        if (bw) {
+          bw.webContents.send('api-tabs-create', newId, data);
+        }
+      } else if (type === 'webview') {
+        e.sender.hostWebContents.send('api-tabs-create', newId, data);
       }
 
       ipcMain.once(`api-tabs-create-${newId}`, (_: any, tabId: number) => {
@@ -238,18 +243,8 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     ) => {
       const newId = makeId(32);
 
-      if (details.tabId) {
-        const wc = findWindowByWebContents(webContents.fromId(details.tabId));
+      for (const wc of ses.webContents) {
         wc.send('api-browserAction-setBadgeText', newId, extensionId, details);
-      } else {
-        for (const wc of ses.webContents) {
-          wc.send(
-            'api-browserAction-setBadgeText',
-            newId,
-            extensionId,
-            details,
-          );
-        }
       }
 
       ipcMain.on(`api-browserAction-setBadgeText-${newId}`, () => {

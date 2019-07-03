@@ -10,11 +10,19 @@ import { getBrowserAction } from './browser-action';
 import { getWebRequest } from './web-request';
 import { getWebNavigation } from './web-navigation';
 
+const arg = process.argv.find(x => x.startsWith('--window-id='));
+
+let windowId: number = null;
+
+if (arg) {
+  windowId = parseInt(arg.split('--window-id=')[1], 10);
+}
+
 export const getAPI = (extension: IpcExtension, sessionId: number) => {
   const api = {
     runtime: getRuntime(extension, sessionId),
     storage: getStorage(extension.id, sessionId),
-    tabs: getTabs(extension, sessionId),
+    tabs: getTabs(extension, sessionId, windowId),
     i18n: getI18n(extension),
     browserAction: getBrowserAction(extension, sessionId),
     webRequest: getWebRequest(),

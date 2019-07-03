@@ -1,4 +1,4 @@
-import { ipcRenderer, webFrame, remote, IpcMessageEvent } from 'electron';
+import { ipcRenderer, webFrame } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 

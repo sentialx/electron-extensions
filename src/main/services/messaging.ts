@@ -223,8 +223,11 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     `send-to-all-extensions-${ses.id}`,
     (e: IpcMessageEvent, msg: string, ...args: any[]) => {
       sendToAllBackgroundPages(ses, msg, ...args);
-      // TODO: UI
-      // appWindow.viewManager.sendToAll(msg, ...args);
+
+      const contents = getWebContentsBySession(ses.session);
+      for (const content of contents) {
+        content.send(msg, ...args);
+      }
     },
   );
 

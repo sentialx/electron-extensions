@@ -6,7 +6,7 @@ import { ExtensibleSession } from '..';
 export const webContentsToTab = (wc: WebContents) => ({
   id: wc.id,
   index: wc.id,
-  windowId: 1,
+  windowId: wc.hostWebContents ? wc.hostWebContents.id : wc.id,
   highlighted: wc.isFocused(),
   active: wc.isFocused(),
   pined: false,

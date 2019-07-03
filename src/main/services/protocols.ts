@@ -45,6 +45,7 @@ export const registerProtocols = (ses: ExtensibleSession) => {
           if (err) {
             return (callback as any)(-6); // FILE_NOT_FOUND
           }
+
           return callback(content);
         });
 

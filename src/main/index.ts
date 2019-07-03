@@ -34,7 +34,19 @@ const sessions: ExtensibleSession[] = [];
 export const backgroundPages: BackgroundPage[] = [];
 
 ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
-  e.returnValue = sessions.find(x => x.session === e.sender.session).id;
+  const ses = sessions.find(x => x.session === e.sender.session);
+
+  if (ses) {
+    e.returnValue = ses.id;
+  } else {
+    const ses = sessions.find(x => {
+      const extension = Object.values(x.extensions).find(
+        x => x.backgroundPage.webContents.id === e.sender.id,
+      );
+      return !!extension;
+    });
+    e.returnValue = ses.id;
+  }
 });
 
 export class ExtensibleSession {
@@ -94,7 +106,7 @@ export class ExtensibleSession {
     const id = basename(dir);
 
     if (this.extensions[id]) {
-      return;
+      return this.extensions[id];
     }
 
     manifest.srcDirectory = dir;
@@ -107,9 +119,11 @@ export class ExtensibleSession {
     const webContents = getAllWebContentsInSession(this.session);
 
     for (const contents of webContents) {
-      if (!webContentsValid(contents)) return;
+      if (!webContentsValid(contents)) continue;
       loadDevToolsExtensions(contents, extensionsToManifests(this.extensions));
     }
+
+    return extension;
   }
 
   addWindow(window: BrowserWindow) {

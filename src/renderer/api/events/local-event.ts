@@ -1,4 +1,4 @@
-export class ApiEvent {
+export class LocalEvent {
   private callbacks: Function[] = [];
 
   public emit(...args: any[]) {

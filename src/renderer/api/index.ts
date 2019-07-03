@@ -11,7 +11,7 @@ import { ipcRenderer, remote } from 'electron';
 import { Port } from './models/port';
 import { IpcExtension } from '../../models';
 
-export * from './events/api-event';
+export * from './events/local-event';
 export * from './events/ipc-event';
 export * from './events/web-request-event';
 export * from './models/port';

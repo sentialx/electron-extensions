@@ -1,11 +1,11 @@
 import { ipcRenderer } from 'electron';
-import { ApiEvent } from '../events/api-event';
+import { LocalEvent } from '../events/local-event';
 
 export class Port {
   public sender: chrome.runtime.MessageSender;
   public name: string;
-  public onMessage = new ApiEvent();
-  public onDisconnect = new ApiEvent();
+  public onMessage = new LocalEvent();
+  public onDisconnect = new LocalEvent();
 
   private portId: string;
 

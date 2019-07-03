@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events';
-import { ipcRenderer, IpcMessageEvent } from 'electron';
+import { ipcRenderer, IpcMessageEvent, remote } from 'electron';
+
+const webContentsId = remote.getCurrentWebContents().id;
 
 export declare interface ExtensionsRenderer {
   on(
@@ -20,6 +22,16 @@ export declare interface ExtensionsRenderer {
 }
 
 export class ExtensionsRenderer extends EventEmitter {
+  public browserAction = {
+    onClicked: (extensionId: string, tabId: number) => {
+      ipcRenderer.send(
+        `api-browserAction-onClicked-${webContentsId}`,
+        extensionId,
+        tabId,
+      );
+    },
+  };
+
   constructor() {
     super();
 

@@ -5,6 +5,7 @@ import {
   app,
   WebContents,
   BrowserWindow,
+  webContents,
 } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
@@ -22,6 +23,7 @@ import {
   hookWebContentsEvents,
   getAllWebContentsInSession,
   webContentsValid,
+  webContentsToTab,
 } from '../utils/web-contents';
 
 let id = 1;
@@ -112,5 +114,16 @@ export class ExtensibleSession {
     window.on('focus', () => {
       this.lastActiveWebContents = window.webContents;
     });
+
+    ipcMain.on(
+      `api-browserAction-onClicked-${window.webContents.id}`,
+      (e: IpcMessageEvent, extensionId: string, tabId: number) => {
+        const tab = webContentsToTab(webContents.fromId(tabId));
+        this.extensions[extensionId].backgroundPage.webContents.send(
+          'api-emit-event-browserAction-onClicked',
+          tab,
+        );
+      },
+    );
   }
 }

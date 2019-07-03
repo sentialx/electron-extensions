@@ -98,18 +98,16 @@ export const sendToBackgroundPages = (
   }
 };
 
-export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
+const loadStorages = (manifest: chrome.runtime.Manifest) => {
   const storagePath = getPath('storage/extensions', manifest.extensionId);
   const local = new StorageArea(resolve(storagePath, 'local'));
   const sync = new StorageArea(resolve(storagePath, 'sync'));
   const managed = new StorageArea(resolve(storagePath, 'managed'));
 
-  const extension: Extension = {
-    manifest,
-    alarms: [],
-    databases: { local, sync, managed },
-  };
+  return { local, sync, managed };
+};
 
+const loadI18n = async (manifest: chrome.runtime.Manifest) => {
   if (typeof manifest.default_locale === 'string') {
     const defaultLocalePath = resolve(
       manifest.srcDirectory,
@@ -117,18 +115,27 @@ export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
       manifest.default_locale,
     );
 
-    if (!existsSync(defaultLocalePath)) return extension;
+    if (!existsSync(defaultLocalePath)) return;
 
     const messagesPath = resolve(defaultLocalePath, 'messages.json');
     const stats = await promises.stat(messagesPath);
 
-    if (!existsSync(messagesPath) || stats.isDirectory()) return extension;
+    if (!existsSync(messagesPath) || stats.isDirectory()) return;
 
     const data = await promises.readFile(messagesPath, 'utf8');
     const locale = JSON.parse(data);
 
-    extension.locale = locale;
+    return locale;
   }
+};
+
+export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
+  const extension: Extension = {
+    manifest,
+    alarms: [],
+    databases: loadStorages(manifest),
+    locale: loadI18n(manifest),
+  };
 
   startBackgroundPage(extension);
 

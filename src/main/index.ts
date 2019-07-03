@@ -39,6 +39,8 @@ export class ExtensibleSession {
 
   public webContents: WebContents[] = [];
 
+  public lastActiveWebContents: WebContents;
+
   private _initialized = false;
 
   constructor(public session: Session) {
@@ -104,5 +106,11 @@ export class ExtensibleSession {
 
   addWindow(window: BrowserWindow) {
     this.webContents.push(window.webContents);
+
+    if (window.isFocused()) this.lastActiveWebContents = window.webContents;
+
+    window.on('focus', () => {
+      this.lastActiveWebContents = window.webContents;
+    });
   }
 }

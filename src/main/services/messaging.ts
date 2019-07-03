@@ -5,6 +5,8 @@ import {
   getAllWebContentsInSession,
   webContentsToTab,
 } from '../../utils/web-contents';
+import { makeId } from '../../utils/string';
+import { findWindowByWebContents } from '../../utils/windows';
 
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e: IpcMessageEvent, id: string) => {
@@ -30,9 +32,29 @@ export const runMessagingService = (ses: ExtensibleSession) => {
 
   ipcMain.on(
     `api-tabs-create-${ses.id}`,
-    (e: IpcMessageEvent, data: chrome.tabs.CreateProperties) => {
-      // TODO:
-      // appWindow.webContents.send("api-tabs-create", data, e.sender.id);
+    (
+      e: IpcMessageEvent,
+      responseId: string,
+      data: chrome.tabs.CreateProperties,
+    ) => {
+      const newId = makeId(32);
+
+      if (data.windowId) {
+        const wc = ses.webContents.find(x => x.id === data.windowId);
+        wc.send('api-tabs-create', newId, data);
+      } else if (e.sender.getType() === 'backgroundPage') {
+        ses.lastActiveWebContents.send('api-tabs-create', newId, data);
+      } else {
+        const wc = findWindowByWebContents(e.sender);
+        wc.send('api-tabs-create', newId, data);
+      }
+
+      ipcMain.once(
+        `api-tabs-create-${newId}`,
+        (_: any, tab: chrome.tabs.Tab) => {
+          e.sender.send(`api-tabs-create-${responseId}`, tab);
+        },
+      );
     },
   );
 

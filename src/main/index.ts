@@ -1,4 +1,12 @@
-import { Session, IpcMessageEvent, ipcMain, app } from 'electron';
+import {
+  Session,
+  IpcMessageEvent,
+  ipcMain,
+  app,
+  WebContents,
+  BrowserWindow,
+  webContents,
+} from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
@@ -15,6 +23,7 @@ import {
   hookWebContentsEvents,
   getAllWebContentsInSession,
   webContentsValid,
+  webContentsToTab,
 } from '../utils/web-contents';
 
 let id = 1;
@@ -29,6 +38,10 @@ export class ExtensibleSession {
   public extensions: { [key: string]: Extension } = {};
 
   public id = id++;
+
+  public webContents: WebContents[] = [];
+
+  public lastActiveWebContents: WebContents;
 
   private _initialized = false;
 
@@ -91,5 +104,26 @@ export class ExtensibleSession {
       if (!webContentsValid(contents)) return;
       loadDevToolsExtensions(contents, extensionsToManifests(this.extensions));
     }
+  }
+
+  addWindow(window: BrowserWindow) {
+    this.webContents.push(window.webContents);
+
+    if (window.isFocused()) this.lastActiveWebContents = window.webContents;
+
+    window.on('focus', () => {
+      this.lastActiveWebContents = window.webContents;
+    });
+
+    ipcMain.on(
+      `api-browserAction-onClicked-${window.webContents.id}`,
+      (e: IpcMessageEvent, extensionId: string, tabId: number) => {
+        const tab = webContentsToTab(webContents.fromId(tabId));
+        this.extensions[extensionId].backgroundPage.webContents.send(
+          'api-emit-event-browserAction-onClicked',
+          tab,
+        );
+      },
+    );
   }
 }

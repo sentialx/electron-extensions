@@ -5,6 +5,8 @@ import {
   getAllWebContentsInSession,
   webContentsToTab,
 } from '../../utils/web-contents';
+import { makeId } from '../../utils/string';
+import { findWindowByWebContents } from '../../utils/windows';
 
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e: IpcMessageEvent, id: string) => {
@@ -30,9 +32,29 @@ export const runMessagingService = (ses: ExtensibleSession) => {
 
   ipcMain.on(
     `api-tabs-create-${ses.id}`,
-    (e: IpcMessageEvent, data: chrome.tabs.CreateProperties) => {
-      // TODO:
-      // appWindow.webContents.send("api-tabs-create", data, e.sender.id);
+    (
+      e: IpcMessageEvent,
+      responseId: string,
+      data: chrome.tabs.CreateProperties,
+    ) => {
+      const newId = makeId(32);
+
+      if (data.windowId) {
+        const wc = ses.webContents.find(x => x.id === data.windowId);
+        wc.send('api-tabs-create', newId, data);
+      } else if (e.sender.getType() === 'backgroundPage') {
+        ses.lastActiveWebContents.send('api-tabs-create', newId, data);
+      } else {
+        const wc = findWindowByWebContents(e.sender);
+        wc.send('api-tabs-create', newId, data);
+      }
+
+      ipcMain.once(`api-tabs-create-${newId}`, (_: any, tabId: number) => {
+        e.sender.send(
+          `api-tabs-create-${responseId}`,
+          webContentsToTab(webContents.fromId(tabId)),
+        );
+      });
     },
   );
 
@@ -208,15 +230,31 @@ export const runMessagingService = (ses: ExtensibleSession) => {
 
   ipcMain.on(
     `api-browserAction-setBadgeText-${ses.id}`,
-    (e: IpcMessageEvent, ...args: any[]) => {
-      /*
-    TODO:
-    appWindow.webContents.send(
-      'api-browserAction-setBadgeText',
-      e.sender.id,
-      ...args,
-    );
-    */
+    (
+      e: IpcMessageEvent,
+      responseId: string,
+      extensionId: string,
+      details: chrome.browserAction.BadgeTextDetails,
+    ) => {
+      const newId = makeId(32);
+
+      if (details.tabId) {
+        const wc = findWindowByWebContents(webContents.fromId(details.tabId));
+        wc.send('api-browserAction-setBadgeText', newId, extensionId, details);
+      } else {
+        for (const wc of ses.webContents) {
+          wc.send(
+            'api-browserAction-setBadgeText',
+            newId,
+            extensionId,
+            details,
+          );
+        }
+      }
+
+      ipcMain.on(`api-browserAction-setBadgeText-${newId}`, () => {
+        e.sender.send(`api-browserAction-setBadgeText-${responseId}`);
+      });
     },
   );
 
@@ -229,15 +267,6 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       for (const content of contents) {
         content.send(msg, ...args);
       }
-    },
-  );
-
-  ipcMain.on(
-    `emit-tabs-event-${ses.id}`,
-    (e: any, name: string, ...data: any[]) => {
-      // TODO: UI
-      // appWindow.viewManager.sendToAll(`api-emit-event-tabs-${name}`, ...data);
-      sendToBackgroundPages(ses, `api-emit-event-tabs-${name}`, ...data);
     },
   );
 };

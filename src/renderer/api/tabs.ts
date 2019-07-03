@@ -62,11 +62,16 @@ export const getTabs = (extension: IpcExtension, sessionId: number) => {
       createProperties: chrome.tabs.CreateProperties,
       callback: (tab: chrome.tabs.Tab) => void = null,
     ) => {
-      ipcRenderer.send(`api-tabs-create-${sessionId}`, createProperties);
+      const responseId = makeId(32);
+      ipcRenderer.send(
+        `api-tabs-create-${sessionId}`,
+        responseId,
+        createProperties,
+      );
 
       if (callback) {
         ipcRenderer.once(
-          'api-tabs-create',
+          `api-tabs-create-${responseId}`,
           (e: Electron.IpcMessageEvent, data: chrome.tabs.Tab) => {
             callback(data);
           },

@@ -6,7 +6,7 @@ import { ExtensibleSession } from '..';
 export const webContentsToTab = (wc: WebContents) => ({
   id: wc.id,
   index: wc.id,
-  windowId: 1,
+  windowId: wc.hostWebContents ? wc.hostWebContents.id : wc.id,
   highlighted: wc.isFocused(),
   active: wc.isFocused(),
   pined: false,
@@ -23,17 +23,21 @@ export const hookWebContentsEvents = (
 ) => {
   const tabId = webContents.id;
 
-  sendToBackgroundPages(ses, 'api-tabs-onCreated');
+  sendToBackgroundPages(ses, 'api-emit-event-tabs-onCreated');
 
   webContents.on('will-navigate', (e, url) => {
-    sendToBackgroundPages(ses, 'api-webNavigation-onBeforeNavigate', {
-      frameId: 0,
-      parentFrameId: -1,
-      processId: webContents.getProcessId(),
-      tabId,
-      timeStamp: Date.now(),
-      url,
-    });
+    sendToBackgroundPages(
+      ses,
+      'api-emit-event-webNavigation-onBeforeNavigate',
+      {
+        frameId: 0,
+        parentFrameId: -1,
+        processId: webContents.getProcessId(),
+        tabId,
+        timeStamp: Date.now(),
+        url,
+      },
+    );
   });
 
   webContents.on('did-start-loading', () => {
@@ -41,7 +45,7 @@ export const hookWebContentsEvents = (
 
     sendToBackgroundPages(
       ses,
-      'api-tabs-onUpdated',
+      'api-emit-event-tabs-onUpdated',
       tabId,
       changeInfo,
       webContentsToTab(webContents),
@@ -53,7 +57,7 @@ export const hookWebContentsEvents = (
 
     sendToBackgroundPages(
       ses,
-      'api-tabs-onUpdated',
+      'api-emit-event-tabs-onUpdated',
       tabId,
       changeInfo,
       webContentsToTab(webContents),
@@ -61,7 +65,7 @@ export const hookWebContentsEvents = (
   });
 
   webContents.on('did-navigate', (e, url) => {
-    sendToBackgroundPages(ses, 'api-webNavigation-onCompleted', {
+    sendToBackgroundPages(ses, 'api-emit-event-webNavigation-onCompleted', {
       frameId: 0,
       parentFrameId: -1,
       processId: webContents.getProcessId(),
@@ -72,7 +76,7 @@ export const hookWebContentsEvents = (
   });
 
   webContents.once('destroyed', () => {
-    sendToBackgroundPages(ses, 'api-tabs-onRemoved', tabId);
+    sendToBackgroundPages(ses, 'api-emit-event-tabs-onRemoved', tabId);
   });
 };
 

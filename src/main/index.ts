@@ -1,4 +1,4 @@
-import { Session, IpcMessageEvent, ipcMain } from 'electron';
+import { Session, IpcMessageEvent, ipcMain, app } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
@@ -9,6 +9,7 @@ import { runWebRequestService } from './services/web-request';
 import { runMessagingService } from './services/messaging';
 import { StorageArea } from '../models/storage-area';
 import { startBackgroundPage } from '../utils/extensions';
+import { hookWebContentsEvents } from '../utils/web-contents';
 
 let id = 1;
 
@@ -27,6 +28,15 @@ export class ExtensibleSession {
 
   constructor(public session: Session) {
     registerProtocols(this);
+
+    app.on('web-contents-created', (e, webContents) => {
+      const type = webContents.getType();
+      if (type !== 'window' && type !== 'webview' && type !== 'browserView') {
+        return;
+      }
+
+      hookWebContentsEvents(this, webContents);
+    });
   }
 
   async loadExtension(dir: string, { devtools } = { devtools: false }) {

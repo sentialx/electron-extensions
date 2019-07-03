@@ -1,6 +1,7 @@
 import { WebContents } from 'electron';
 
 import { sendToBackgroundPages } from './extensions';
+import { ExtensibleSession } from '..';
 
 export const webContentsToTab = (wc: WebContents) => ({
   id: wc.id,

@@ -161,3 +161,7 @@ export const loadDevToolsExtensions = (
     `InspectorFrontendAPI.addExtensions(${JSON.stringify(extensionInfoArray)})`,
   );
 };
+
+export const extensionsToManifests = (extensions: {
+  [key: string]: Extension;
+}) => Object.values(extensions).map(item => item.manifest);

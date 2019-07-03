@@ -6,10 +6,15 @@ import { Extension } from '../models/extension';
 import { registerProtocols } from './services/protocols';
 import { runWebRequestService } from './services/web-request';
 import { runMessagingService } from './services/messaging';
-import { loadDevToolsExtensions, loadExtension } from '../utils/extensions';
+import {
+  loadDevToolsExtensions,
+  loadExtension,
+  extensionsToManifests,
+} from '../utils/extensions';
 import {
   hookWebContentsEvents,
   getAllWebContentsInSession,
+  webContentsValid,
 } from '../utils/web-contents';
 
 let id = 1;
@@ -31,18 +36,15 @@ export class ExtensibleSession {
     registerProtocols(this);
 
     app.on('web-contents-created', (e, webContents) => {
-      const type = webContents.getType();
-      if (type !== 'window' && type !== 'webview' && type !== 'browserView') {
-        return;
-      }
+      if (!webContentsValid(webContents)) return;
 
       hookWebContentsEvents(this, webContents);
 
       webContents.on('devtools-opened', () => {
-        const manifests = Object.values(this.extensions).map(
-          item => item.manifest,
+        loadDevToolsExtensions(
+          webContents,
+          extensionsToManifests(this.extensions),
         );
-        loadDevToolsExtensions(webContents, manifests);
       });
     });
   }
@@ -81,21 +83,13 @@ export class ExtensibleSession {
     manifest.extensionId = id;
 
     const extension = await loadExtension(manifest);
-
     this.extensions[id] = extension;
 
     const webContents = getAllWebContentsInSession(this.session);
+
     for (const contents of webContents) {
-      const type = contents.getType();
-      if (type !== 'window' && type !== 'webview' && type !== 'browserView') {
-        return;
-      }
-
-      const manifests = Object.values(this.extensions).map(
-        item => item.manifest,
-      );
-
-      loadDevToolsExtensions(contents, manifests);
+      if (!webContentsValid(contents)) return;
+      loadDevToolsExtensions(contents, extensionsToManifests(this.extensions));
     }
   }
 }

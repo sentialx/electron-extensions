@@ -7,7 +7,10 @@ import { registerProtocols } from './services/protocols';
 import { runWebRequestService } from './services/web-request';
 import { runMessagingService } from './services/messaging';
 import { loadDevToolsExtensions, loadExtension } from '../utils/extensions';
-import { hookWebContentsEvents } from '../utils/web-contents';
+import {
+  hookWebContentsEvents,
+  getAllWebContentsInSession,
+} from '../utils/web-contents';
 
 let id = 1;
 
@@ -80,5 +83,19 @@ export class ExtensibleSession {
     const extension = await loadExtension(manifest);
 
     this.extensions[id] = extension;
+
+    const webContents = getAllWebContentsInSession(this.session);
+    for (const contents of webContents) {
+      const type = contents.getType();
+      if (type !== 'window' && type !== 'webview' && type !== 'browserView') {
+        return;
+      }
+
+      const manifests = Object.values(this.extensions).map(
+        item => item.manifest,
+      );
+
+      loadDevToolsExtensions(contents, manifests);
+    }
   }
 }

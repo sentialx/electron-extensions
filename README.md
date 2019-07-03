@@ -13,13 +13,13 @@ $ npm install electron-extensions
 The library is really easy-to-use. All you will have to do is to put the following code in your main process:
 
 ```typescript
-import { extensionsMain } from 'electron-extensions';
+import { ExtensibleSession } from 'electron-extensions';
 import { app, session } from 'electron';
 
 app.on('ready', () => {
   ...
-  extensionsMain.setSession(session.defaultSession);
-  extensionsMain.load('C:/.../abcdefghijklmnoprstuwxyz'); // Path to the extension to load
+  const extensions = new ExtensibleSession(session.defaultSession);
+  extensions.loadExtension('C:/.../abcdefghijklmnoprstuwxyz'); // Path to the extension to load
   ...
 });
 
@@ -27,16 +27,16 @@ app.on('ready', () => {
 
 # Documentation
 
-## Object `extensionsMain`
+## Class `ExtensibleSession`
+
+### `new ExtensibleSession(session: Electron.Session)`
+
+- `session` Electron.Session - used for injecting preloads to load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
 
 It's only for the main process. It's used to load extensions and handle their events.
 
 ### Instance methods
 
-#### `setSession(session: Electron.Session)`
-
-`session` is used for injecting preloads to load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
-
-#### `load(path: string)`
+#### `loadExtension(path: string)`
 
 Loads an extension from a given path.

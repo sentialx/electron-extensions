@@ -3,9 +3,10 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { format, parse } from 'url';
 import { runInThisContext } from 'vm';
+
 import { getAPI } from '../api';
-import { IpcExtension } from '../../models';
 import { matchesPattern } from '../../utils/url';
+import { IpcExtension } from '../../models/ipc-extension';
 
 const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
   'get-extensions',

@@ -2,14 +2,13 @@ import { Session } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
-import { Extension, StorageArea } from './models';
-import { startBackgroundPage } from './utils/extensions';
-import {
-  runWebRequestService,
-  runMessagingService,
-  registerProtocols,
-} from './services';
 import { getPath } from '../utils/paths';
+import { Extension } from '../models/extension';
+import { registerProtocols } from './services/protocols';
+import { runWebRequestService } from './services/web-request';
+import { runMessagingService } from './services/messaging';
+import { StorageArea } from '../models/storage-area';
+import { startBackgroundPage } from '../utils/extensions';
 
 export class ExtensionsMain {
   public extensions: { [key: string]: Extension } = {};

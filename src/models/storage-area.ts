@@ -1,6 +1,6 @@
 import levelup, { LevelUp } from 'levelup';
 import leveldown from 'leveldown';
-import { mkDirByPathSync } from '../../utils/paths';
+import { mkDirByPathSync } from '../utils/paths';
 
 export class StorageArea {
   public db: LevelUp;

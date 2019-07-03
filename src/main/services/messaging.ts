@@ -1,8 +1,5 @@
 import { webContents, ipcMain, IpcMessageEvent, Session } from 'electron';
-import {
-  getIpcExtension,
-  sendToAllBackgroundPages,
-} from '../../utils/extensions';
+import { getIpcExtension, sendToBackgroundPages } from '../../utils/extensions';
 import { ExtensibleSession } from '..';
 
 const getWebContentsBySession = (ses: Session) => {
@@ -222,7 +219,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     `send-to-all-extensions-${ses.id}`,
     (e: IpcMessageEvent, msg: string, ...args: any[]) => {
-      sendToAllBackgroundPages(ses, msg, ...args);
+      sendToBackgroundPages(ses, msg, ...args);
 
       const contents = getWebContentsBySession(ses.session);
       for (const content of contents) {
@@ -236,7 +233,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     (e: any, name: string, ...data: any[]) => {
       // TODO: UI
       // appWindow.viewManager.sendToAll(`api-emit-event-tabs-${name}`, ...data);
-      sendToAllBackgroundPages(ses, `api-emit-event-tabs-${name}`, ...data);
+      sendToBackgroundPages(ses, `api-emit-event-tabs-${name}`, ...data);
     },
   );
 };

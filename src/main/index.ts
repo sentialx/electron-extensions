@@ -26,13 +26,12 @@ import {
   webContentsValid,
   webContentsToTab,
 } from '../utils/web-contents';
-import { BackgroundPage } from '../models/background-page';
 
 let id = 1;
 
 const sessions: ExtensibleSession[] = [];
 
-export const backgroundPages: BackgroundPage[] = [];
+export const extensions: { [key: string]: Extension } = {};
 
 if (ipcMain) {
   ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
@@ -117,7 +116,7 @@ export class ExtensibleSession {
 
     const extension = await loadExtension(manifest, this.id);
     this.extensions[id] = extension;
-    backgroundPages.push(extension.backgroundPage);
+    extensions[id] = extension;
 
     const webContents = getAllWebContentsInSession(this.session);
 

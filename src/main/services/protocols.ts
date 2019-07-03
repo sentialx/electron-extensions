@@ -2,7 +2,7 @@ import { protocol, app, session } from 'electron';
 import { readFile } from 'fs';
 import { join } from 'path';
 import { parse } from 'url';
-import { ExtensibleSession } from '..';
+import { ExtensibleSession, extensions } from '..';
 
 if (protocol) {
   protocol.registerSchemesAsPrivileged([
@@ -14,49 +14,52 @@ if (protocol) {
 }
 
 export const registerProtocols = (ses: ExtensibleSession) => {
-  session
-    .fromPartition(`persist:electron-extension-${ses.id}`)
-    .protocol.registerBufferProtocol(
-      'electron-extension',
-      (request, callback) => {
-        const parsed = parse(decodeURIComponent(request.url));
+  registerProtocol(
+    session.fromPartition(`persist:electron-extension-${ses.id}`),
+  );
 
-        if (!parsed.hostname || !parsed.pathname) {
-          return callback();
-        }
+  registerProtocol(ses.session);
+};
 
-        const extension = ses.extensions[parsed.hostname];
+const registerProtocol = (ses: Electron.Session) => {
+  ses.protocol.registerBufferProtocol(
+    'electron-extension',
+    (request, callback) => {
+      const parsed = parse(decodeURIComponent(request.url));
 
-        if (!extension) {
-          return callback();
-        }
+      if (!parsed.hostname || !parsed.pathname) {
+        return callback();
+      }
 
-        const { backgroundPage, path } = extension;
+      const extension = extensions[parsed.hostname];
 
-        if (
-          backgroundPage &&
-          parsed.pathname === `/${backgroundPage.fileName}`
-        ) {
-          return callback({
-            mimeType: 'text/html',
-            data: backgroundPage.html,
-          });
-        }
+      if (!extension) {
+        return callback();
+      }
 
-        readFile(join(path, parsed.pathname), (err, content) => {
-          if (err) {
-            return (callback as any)(-6); // FILE_NOT_FOUND
-          }
+      const { backgroundPage, path } = extension;
 
-          return callback(content);
+      if (backgroundPage && parsed.pathname === `/${backgroundPage.fileName}`) {
+        return callback({
+          mimeType: 'text/html',
+          data: backgroundPage.html,
         });
+      }
 
-        return null;
-      },
-      error => {
-        if (error) {
-          console.error(`Failed to register extension protocol: ${error}`);
+      readFile(join(path, parsed.pathname), (err, content) => {
+        if (err) {
+          return (callback as any)(-6); // FILE_NOT_FOUND
         }
-      },
-    );
+
+        return callback(content);
+      });
+
+      return null;
+    },
+    error => {
+      if (error) {
+        console.error(`Failed to register extension protocol: ${error}`);
+      }
+    },
+  );
 };

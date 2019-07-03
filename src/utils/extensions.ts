@@ -41,7 +41,7 @@ export const startBackgroundPage = async (
 
     if (page) {
       fileName = page;
-      html = await promises.readFile(resolve(path, page));
+      html = await promises.readFile(resolve(manifest.srcDirectory, page));
     } else if (scripts) {
       fileName = 'generated.html';
       html = Buffer.from(
@@ -135,6 +135,8 @@ export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
     alarms: [],
     databases: loadStorages(manifest),
     locale: loadI18n(manifest),
+    id: manifest.extensionId,
+    path: manifest.srcDirectory,
   };
 
   startBackgroundPage(extension);

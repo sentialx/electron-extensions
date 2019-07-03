@@ -48,6 +48,8 @@ export class ExtensibleSession {
   constructor(public session: Session) {
     registerProtocols(this);
 
+    sessions.push(this);
+
     app.on('web-contents-created', (e, webContents) => {
       if (!webContentsValid(webContents)) return;
 

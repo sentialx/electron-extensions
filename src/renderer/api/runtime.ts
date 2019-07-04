@@ -18,6 +18,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   id: extension.id,
   onConnect: new LocalEvent(),
   onMessage: new LocalEvent(),
+  onInstalled: new LocalEvent(),
 
   sendMessage: (...args: any[]) => {
     const sender = getSender(extension.id);

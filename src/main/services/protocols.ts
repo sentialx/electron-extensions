@@ -8,7 +8,14 @@ if (protocol) {
   protocol.registerSchemesAsPrivileged([
     {
       scheme: 'electron-extension',
-      privileges: { bypassCSP: true, secure: true },
+      privileges: {
+        bypassCSP: true,
+        secure: true,
+        standard: true,
+        supportFetchAPI: true,
+        allowServiceWorkers: true,
+        corsEnabled: false,
+      },
     },
   ]);
 }

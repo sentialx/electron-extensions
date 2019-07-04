@@ -43,4 +43,5 @@ const getStorageArea = (id: string, area: string, sessionId: number) => ({
 export const getStorage = (extensionId: string, sessionId: number) => ({
   local: getStorageArea(extensionId, 'local', sessionId),
   managed: getStorageArea(extensionId, 'managed', sessionId),
+  sync: getStorageArea(extensionId, 'sync', sessionId),
 });

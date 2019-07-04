@@ -52,7 +52,7 @@ export interface IAliasParameters {
 export type IListenerCollection = Map<IListener['id'], IListener>;
 
 const defaultResolver = (listeners: IApplier[]) => {
-  const response = listeners.reduce(
+  const response = listeners.reverse().reduce(
     async (accumulator: any, element: any) => {
       if (accumulator.cancel) {
         return accumulator;

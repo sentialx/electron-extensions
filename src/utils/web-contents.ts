@@ -1,4 +1,4 @@
-import { WebContents, webContents } from 'electron';
+import { WebContents, webContents, IpcMessageEvent } from 'electron';
 
 import { sendToBackgroundPages } from './extensions';
 import { ExtensibleSession } from '..';
@@ -62,6 +62,17 @@ export const hookWebContentsEvents = (
       changeInfo,
       webContentsToTab(webContents),
     );
+  });
+
+  webContents.on('did-start-navigation', (e: any, url: string) => {
+    sendToBackgroundPages(ses, 'api-emit-event-webNavigation-onCommitted', {
+      frameId: 0,
+      parentFrameId: -1,
+      processId: webContents.getProcessId(),
+      tabId,
+      timeStamp: Date.now(),
+      url,
+    });
   });
 
   webContents.on('did-navigate', (e, url) => {

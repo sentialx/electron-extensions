@@ -35,19 +35,42 @@ export const extensions: { [key: string]: Extension } = {};
 
 if (ipcMain) {
   ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
-    const ses = sessions.find(x => x.session === e.sender.session);
+    let ses = sessions.find(x => x.session === e.sender.session);
 
     if (ses) {
       e.returnValue = ses.id;
     } else {
-      const ses = sessions.find(x => {
+      ses = sessions.find(x => {
         const extension = Object.values(x.extensions).find(
           x => x.backgroundPage.webContents.id === e.sender.id,
         );
         return !!extension;
       });
-      e.returnValue = ses.id;
+      if (ses) {
+        e.returnValue = ses.id;
+        return;
+      }
     }
+
+    /*const wc = webContents
+      .getAllWebContents()
+      .find(
+        x =>
+          x.devToolsWebContents &&
+          x.devToolsWebContents.getType() === e.sender.getType(),
+      );
+
+    console.log(wc);
+
+    if (wc) {
+      const s = sessions.find(x => x.session === wc.session);
+      if (s) {
+        e.returnValue = s.id;
+        return;
+      }
+    }*/
+
+    e.returnValue = -1;
   });
 }
 

@@ -6,9 +6,9 @@ import { IpcExtension } from '../../models/ipc-extension';
 import { injectContentScript } from './inject';
 import { webContentsValid } from '../../utils/web-contents';
 
-if (webContentsValid(remote.getCurrentWebContents())) {
-  const sessionId: number = ipcRenderer.sendSync('get-session-id');
+const sessionId: number = ipcRenderer.sendSync('get-session-id');
 
+if (sessionId !== -1) {
   const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
     `get-extensions-${sessionId}`,
   );

@@ -91,7 +91,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
       name,
     });
 
-    return new Port(portId, name);
+    return new Port(sessionId, portId, name);
   },
 
   reload: () => {

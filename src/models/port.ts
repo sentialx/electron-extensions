@@ -10,6 +10,7 @@ export class Port {
   private portId: string;
 
   constructor(
+    public sessionId: number,
     portId: string,
     name: string = null,
     sender: chrome.runtime.MessageSender = null,
@@ -34,6 +35,9 @@ export class Port {
   }
 
   public postMessage(msg: any) {
-    ipcRenderer.send('api-port-postMessage', { portId: this.portId, msg });
+    ipcRenderer.send(`api-port-postMessage-${this.sessionId}`, {
+      portId: this.portId,
+      msg,
+    });
   }
 }

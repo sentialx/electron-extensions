@@ -4,6 +4,7 @@ import { ExtensibleSession } from '..';
 import {
   getAllWebContentsInSession,
   webContentsToTab,
+  webContentsValid,
 } from '../../utils/web-contents';
 import { makeId } from '../../utils/string';
 
@@ -147,19 +148,21 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     `api-port-postMessage-${ses.id}`,
     (e: IpcMessageEvent, { portId, msg }: any) => {
-      Object.keys(ses.extensions).forEach(key => {
-        const { backgroundPage } = ses.extensions[key];
-        const contents = backgroundPage.webContents;
+      if (webContentsValid(e.sender)) {
+        Object.keys(ses.extensions).forEach(key => {
+          const { backgroundPage } = ses.extensions[key];
+          const contents = backgroundPage.webContents;
 
-        if (e.sender.id !== contents.id) {
-          contents.send(`api-port-postMessage-${portId}`, msg);
-        }
-      });
-
-      const contents = getAllWebContentsInSession(ses.session);
-      for (const content of contents) {
-        if (content.id !== e.sender.id) {
-          content.send(`api-port-postMessage-${portId}`, msg);
+          if (e.sender.id !== contents.id) {
+            contents.send(`api-port-postMessage-${portId}`, msg);
+          }
+        });
+      } else {
+        const contents = getAllWebContentsInSession(ses.session);
+        for (const content of contents) {
+          if (content.id !== e.sender.id) {
+            content.send(`api-port-postMessage-${portId}`, msg);
+          }
         }
       }
     },

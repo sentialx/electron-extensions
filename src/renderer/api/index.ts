@@ -49,7 +49,8 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
     'api-runtime-connect',
     (e: Electron.IpcMessageEvent, data: any) => {
       const { portId, sender, name } = data;
-      const port = new Port(portId, name, sender);
+      const port = new Port(sessionId, portId, name, sender);
+
       api.runtime.onConnect.emit(port);
     },
   );

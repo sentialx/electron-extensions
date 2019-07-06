@@ -51,19 +51,21 @@ export const hookWebContentsEvents = (
     );
   });
 
-  webContents.on('did-start-navigation', (e: any, url: string, isMainFrame: boolean) => {
-    if (isMainFrame) {
-      sendToBackgroundPages(ses, 'api-emit-event-webNavigation-onCommitted', {
-        frameId: 0,
-        parentFrameId: -1,
-        processId: webContents.getProcessId(),
-        tabId,
-        timeStamp: Date.now(),
-        url,
-      });
-    }
-    
-  });
+  webContents.on(
+    'did-start-navigation',
+    (e: any, url: string, isMainFrame: boolean) => {
+      if (isMainFrame) {
+        sendToBackgroundPages(ses, 'api-emit-event-webNavigation-onCommitted', {
+          frameId: 0,
+          parentFrameId: -1,
+          processId: webContents.getProcessId(),
+          tabId,
+          timeStamp: Date.now(),
+          url,
+        });
+      }
+    },
+  );
 
   webContents.on('did-navigate', (e, url) => {
     sendToBackgroundPages(ses, 'api-emit-event-webNavigation-onCompleted', {

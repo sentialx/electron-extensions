@@ -69,5 +69,20 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
     },
   );
 
+  ipcRenderer.on(
+    'api-tabs-sendMessage',
+    (e: Electron.IpcMessageEvent, data: any, webContentsId: number) => {
+      const { portId, sender, message } = data;
+
+      const sendResponse = (msg: any) => {
+        remote.webContents
+          .fromId(webContentsId)
+          .send(`api-tabs-sendMessage-response-${portId}`, msg);
+      };
+
+      api.runtime.onMessage.emit(message, sender, sendResponse);
+    },
+  );
+
   return api;
 };

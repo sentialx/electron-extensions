@@ -190,26 +190,17 @@ export const getTabs = (
       const sender = getSender(extension.id);
       const portId = makeId(32);
 
-      let extensionId = args[0];
-      let message = args[1];
-      let options = args[2];
+      const tabId = args[0];
+      const message = args[1];
+      const options = args[2];
       let responseCallback = args[3];
-
-      if (typeof args[0] === 'object') {
-        message = args[0];
-        extensionId = extension.id;
-      }
-
-      if (typeof args[1] === 'object') {
-        options = args[1];
-      }
-
-      if (typeof args[1] === 'function') {
-        responseCallback = args[1];
-      }
 
       if (typeof args[2] === 'function') {
         responseCallback = args[2];
+      }
+
+      if (typeof args[3] === 'function') {
+        responseCallback = args[3];
       }
 
       if (options && options.includeTlsChannelId) {
@@ -218,15 +209,15 @@ export const getTabs = (
 
       if (typeof responseCallback === 'function') {
         ipcRenderer.on(
-          `api-runtime-sendMessage-response-${portId}`,
+          `api-tabs-sendMessage-response-${portId}`,
           (e: Electron.IpcMessageEvent, res: any) => {
             responseCallback(res);
           },
         );
       }
 
-      ipcRenderer.send(`api-runtime-sendMessage-${sessionId}`, {
-        extensionId,
+      ipcRenderer.send(`api-tabs-sendMessage-${sessionId}`, {
+        tabId,
         portId,
         sender,
         message,

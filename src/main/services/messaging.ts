@@ -131,6 +131,20 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   );
 
   ipcMain.on(
+    `api-tabs-sendMessage-${ses.id}`,
+    async (e: IpcMessageEvent, data: any) => {
+      const { tabId } = data;
+
+      const contents = getAllWebContentsInSession(ses.session);
+      for (const content of contents) {
+        if (content.id === tabId) {
+          content.send('api-tabs-sendMessage', data, e.sender.id);
+        }
+      }
+    },
+  );
+
+  ipcMain.on(
     `api-port-postMessage-${ses.id}`,
     (e: IpcMessageEvent, { portId, msg }: any) => {
       Object.keys(ses.extensions).forEach(key => {

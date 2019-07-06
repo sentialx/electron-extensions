@@ -5,6 +5,7 @@ import { join } from 'path';
 import { IpcEvent } from './events/ipc-event';
 import { makeId } from '../../utils/string';
 import { IpcExtension } from '../../models/ipc-extension';
+import { getSender } from '../../utils/sender';
 
 export const getTabs = (
   extension: IpcExtension,
@@ -183,6 +184,53 @@ export const getTabs = (
           }
         },
       );
+    },
+
+    sendMessage: (...args: any[]) => {
+      const sender = getSender(extension.id);
+      const portId = makeId(32);
+
+      let extensionId = args[0];
+      let message = args[1];
+      let options = args[2];
+      let responseCallback = args[3];
+
+      if (typeof args[0] === 'object') {
+        message = args[0];
+        extensionId = extension.id;
+      }
+
+      if (typeof args[1] === 'object') {
+        options = args[1];
+      }
+
+      if (typeof args[1] === 'function') {
+        responseCallback = args[1];
+      }
+
+      if (typeof args[2] === 'function') {
+        responseCallback = args[2];
+      }
+
+      if (options && options.includeTlsChannelId) {
+        sender.tlsChannelId = portId;
+      }
+
+      if (typeof responseCallback === 'function') {
+        ipcRenderer.on(
+          `api-runtime-sendMessage-response-${portId}`,
+          (e: Electron.IpcMessageEvent, res: any) => {
+            responseCallback(res);
+          },
+        );
+      }
+
+      ipcRenderer.send(`api-runtime-sendMessage-${sessionId}`, {
+        extensionId,
+        portId,
+        sender,
+        message,
+      });
     },
 
     update: () => {},

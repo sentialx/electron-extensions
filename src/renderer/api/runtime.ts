@@ -5,13 +5,7 @@ import { IpcExtension } from '../../models/ipc-extension';
 import { LocalEvent } from './events/local-event';
 import { makeId } from '../../utils/string';
 import { Port } from '../../models/port';
-
-const getSender = (id: string): chrome.runtime.MessageSender => ({
-  id,
-  url: window.location.href,
-  frameId: 0,
-  tab: { id: remote.getCurrentWebContents().id } as any,
-});
+import { getSender } from '../../utils/sender';
 
 export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   lastError: null as any,

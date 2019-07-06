@@ -21,11 +21,11 @@ import {
   getIpcExtension,
 } from '../utils/extensions';
 import {
-  hookWebContentsEvents,
   getAllWebContentsInSession,
   webContentsValid,
   webContentsToTab,
 } from '../utils/web-contents';
+import { hookWebContentsEvents } from './services/web-navigation';
 
 let id = 1;
 

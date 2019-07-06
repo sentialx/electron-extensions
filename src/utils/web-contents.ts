@@ -1,95 +1,22 @@
-import { WebContents, webContents, IpcMessageEvent } from 'electron';
+import { WebContents, webContents } from 'electron';
 
 import { sendToBackgroundPages } from './extensions';
 import { ExtensibleSession } from '..';
 
-export const webContentsToTab = (wc: WebContents) => ({
+export const webContentsToTab = (wc: WebContents): chrome.tabs.Tab => ({
   id: wc.id,
   index: wc.id,
   windowId: wc.hostWebContents ? wc.hostWebContents.id : wc.id,
   highlighted: wc.isFocused(),
   active: wc.isFocused(),
-  pined: false,
+  selected: wc.isFocused(),
+  pinned: false,
   discarded: false,
   autoDiscardable: false,
   url: wc.getURL(),
   title: wc.getTitle(),
   incognito: false,
 });
-
-export const hookWebContentsEvents = (
-  ses: ExtensibleSession,
-  webContents: WebContents,
-) => {
-  const tabId = webContents.id;
-
-  sendToBackgroundPages(ses, 'api-emit-event-tabs-onCreated');
-
-  webContents.on('will-navigate', (e, url) => {
-    sendToBackgroundPages(
-      ses,
-      'api-emit-event-webNavigation-onBeforeNavigate',
-      {
-        frameId: 0,
-        parentFrameId: -1,
-        processId: webContents.getProcessId(),
-        tabId,
-        timeStamp: Date.now(),
-        url,
-      },
-    );
-  });
-
-  webContents.on('did-start-loading', () => {
-    const changeInfo = { status: 'loading' };
-
-    sendToBackgroundPages(
-      ses,
-      'api-emit-event-tabs-onUpdated',
-      tabId,
-      changeInfo,
-      webContentsToTab(webContents),
-    );
-  });
-
-  webContents.on('did-stop-loading', () => {
-    const changeInfo = { status: 'complete' };
-
-    sendToBackgroundPages(
-      ses,
-      'api-emit-event-tabs-onUpdated',
-      tabId,
-      changeInfo,
-      webContentsToTab(webContents),
-    );
-  });
-
-  webContents.on('did-start-navigation', (e: any, url: string) => {
-    sendToBackgroundPages(ses, 'api-emit-event-webNavigation-onCommitted', {
-      frameId: 0,
-      parentFrameId: -1,
-      processId: webContents.getProcessId(),
-      tabId,
-      timeStamp: Date.now(),
-      url,
-    });
-  });
-
-  webContents.on('did-navigate', (e, url) => {
-    sendToBackgroundPages(ses, 'api-emit-event-webNavigation-onCompleted', {
-      frameId: 0,
-      parentFrameId: -1,
-      processId: webContents.getProcessId(),
-      tabId,
-      timeStamp: Date.now(),
-      url,
-    });
-  });
-
-  webContents.once('destroyed', () => {
-    sendToBackgroundPages(ses, 'api-emit-event-tabs-onRemoved', tabId);
-  });
-};
 
 export const getAllWebContentsInSession = (ses: Electron.Session) => {
   return webContents.getAllWebContents().filter(x => x.session === ses);

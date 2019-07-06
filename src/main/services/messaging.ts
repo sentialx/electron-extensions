@@ -118,7 +118,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   );
 
   ipcMain.on(
-    `api-runtime-sendMessage--${ses.id}`,
+    `api-runtime-sendMessage-${ses.id}`,
     async (e: IpcMessageEvent, data: any) => {
       const { extensionId } = data;
       const { backgroundPage } = ses.extensions[extensionId];

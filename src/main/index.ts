@@ -9,7 +9,6 @@ import {
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
-import { Extension } from '../models/extension';
 import { registerProtocols } from './services/protocols';
 import { runWebRequestService } from './services/web-request';
 import { runMessagingService } from './services/messaging';
@@ -25,12 +24,14 @@ import {
   webContentsToTab,
 } from '../utils/web-contents';
 import { hookWebContentsEvents } from './services/web-navigation';
+import { IpcExtension } from '../models/ipc-extension';
+import { IStorage } from '../models/storage';
 
 let id = 1;
 
 const sessions: ExtensibleSession[] = [];
 
-export const extensions: { [key: string]: Extension } = {};
+export const storages: Map<string, IStorage> = new Map();
 
 if (ipcMain) {
   ipcMain.on('get-session-id', e => {
@@ -74,7 +75,7 @@ if (ipcMain) {
 }
 
 export class ExtensibleSession {
-  public extensions: { [key: string]: Extension } = {};
+  public extensions: { [key: string]: IpcExtension } = {};
 
   public id = id++;
 
@@ -138,7 +139,6 @@ export class ExtensibleSession {
 
     const extension = await loadExtension(manifest, this.id);
     this.extensions[id] = extension;
-    extensions[id] = extension;
 
     const webContents = getAllWebContentsInSession(this.session);
 

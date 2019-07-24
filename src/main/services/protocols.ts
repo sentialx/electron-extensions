@@ -1,8 +1,8 @@
-import { protocol, app, session } from 'electron';
+import { protocol, session } from 'electron';
 import { readFile } from 'fs';
 import { join } from 'path';
 import { parse } from 'url';
-import { ExtensibleSession, extensions } from '..';
+import { ExtensibleSession } from '..';
 
 if (protocol) {
   protocol.registerSchemesAsPrivileged([
@@ -22,13 +22,17 @@ if (protocol) {
 
 export const registerProtocols = (ses: ExtensibleSession) => {
   registerProtocol(
+    ses,
     session.fromPartition(`persist:electron-extension-${ses.id}`),
   );
 
-  registerProtocol(ses.session);
+  registerProtocol(ses, ses.session);
 };
 
-const registerProtocol = (ses: Electron.Session) => {
+const registerProtocol = (
+  extensibleSession: ExtensibleSession,
+  ses: Electron.Session,
+) => {
   ses.protocol.registerBufferProtocol(
     'electron-extension',
     (request, callback) => {
@@ -38,7 +42,7 @@ const registerProtocol = (ses: Electron.Session) => {
         return callback();
       }
 
-      const extension = extensions[parsed.hostname];
+      const extension = extensibleSession.extensions[parsed.hostname];
 
       if (!extension) {
         return callback();

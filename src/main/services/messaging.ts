@@ -1,6 +1,6 @@
 import { webContents, ipcMain, BrowserWindow } from 'electron';
 import { getIpcExtension, sendToBackgroundPages } from '../../utils/extensions';
-import { ExtensibleSession } from '..';
+import { ExtensibleSession, storages } from '..';
 import {
   getAllWebContentsInSession,
   webContentsToTab,
@@ -156,13 +156,13 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     `api-storage-operation-${ses.id}`,
     (e, { extensionId, id, area, type, arg }: any) => {
-      const { databases } = ses.extensions[extensionId];
+      const storage = storages.get(extensionId);
 
       const contents = webContents.fromId(e.sender.id);
       const msg = `api-storage-operation-${id}`;
 
       if (type === 'get') {
-        databases[area].get(arg, d => {
+        storage[area].get(arg, d => {
           for (const key in d) {
             if (Buffer.isBuffer(d[key])) {
               d[key] = JSON.parse(d[key].toString());
@@ -171,15 +171,15 @@ export const runMessagingService = (ses: ExtensibleSession) => {
           contents.send(msg, d);
         });
       } else if (type === 'set') {
-        databases[area].set(arg, () => {
+        storage[area].set(arg, () => {
           contents.send(msg);
         });
       } else if (type === 'clear') {
-        databases[area].clear(() => {
+        storage[area].clear(() => {
           contents.send(msg);
         });
       } else if (type === 'remove') {
-        databases[area].set(arg, () => {
+        storage[area].set(arg, () => {
           contents.send(msg);
         });
       }

@@ -2,9 +2,8 @@ import { WebContents, webContents } from 'electron';
 import { promises, existsSync } from 'fs';
 import { resolve } from 'path';
 import { format } from 'url';
-import { Extension } from '../models/extension';
 import { IpcExtension } from '../models/ipc-extension';
-import { ExtensibleSession } from '../main';
+import { ExtensibleSession, storages } from '../main';
 import { getPath } from './paths';
 import { StorageArea } from '../models/storage-area';
 
@@ -22,10 +21,9 @@ export const manifestToExtensionInfo = (manifest: chrome.runtime.Manifest) => {
   };
 };
 
-export const getIpcExtension = (extension: Extension): IpcExtension => {
-  const ipcExtension: Extension = { ...extension };
+export const getIpcExtension = (extension: IpcExtension): IpcExtension => {
+  const ipcExtension: IpcExtension = { ...extension };
 
-  delete ipcExtension.databases;
   delete ipcExtension.backgroundPage;
 
   return ipcExtension;
@@ -132,15 +130,18 @@ export const loadExtension = async (
   manifest: chrome.runtime.Manifest,
   sessionId: number,
 ) => {
-  const extension: Extension = {
+  const extension: IpcExtension = {
     manifest,
     alarms: [],
-    databases: loadStorages(manifest),
     locale: await loadI18n(manifest),
     id: manifest.extensionId,
     path: manifest.srcDirectory,
     backgroundPage: await startBackgroundPage(manifest, sessionId),
   };
+
+  if (!storages.get(manifest.extensionId)) {
+    storages.set(manifest.extensionId, loadStorages(manifest));
+  }
 
   return extension;
 };
@@ -166,5 +167,5 @@ export const loadDevToolsExtensions = (
 };
 
 export const extensionsToManifests = (extensions: {
-  [key: string]: Extension;
+  [key: string]: IpcExtension;
 }) => Object.values(extensions).map(item => item.manifest);

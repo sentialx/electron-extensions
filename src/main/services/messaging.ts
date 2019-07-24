@@ -70,7 +70,6 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       const contents = webContents.fromId(tabId);
 
       if (contents) {
-        console.log(details.code);
         contents.insertCSS(details.code);
         e.sender.send('api-tabs-insertCSS');
       }

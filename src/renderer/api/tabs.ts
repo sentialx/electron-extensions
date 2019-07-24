@@ -38,7 +38,7 @@ export const getTabs = (
 
       ipcRenderer.once(
         'api-tabs-query',
-        (e: Electron.IpcMessageEvent, data: chrome.tabs.Tab[]) => {
+        (e, data: chrome.tabs.Tab[]) => {
           const readProperty = (obj: any, prop: string) => obj[prop];
 
           callback(
@@ -78,7 +78,7 @@ export const getTabs = (
       if (callback) {
         ipcRenderer.once(
           `api-tabs-create-${responseId}`,
-          (e: Electron.IpcMessageEvent, data: chrome.tabs.Tab) => {
+          (e, data: chrome.tabs.Tab) => {
             callback(data);
           },
         );
@@ -131,7 +131,7 @@ export const getTabs = (
 
         ipcRenderer.once(
           `api-tabs-executeScript-${responseId}`,
-          (e: Electron.IpcMessageEvent, result: any) => {
+          (e, result: any) => {
             if (callback) {
               callback(result);
             }
@@ -165,7 +165,7 @@ export const getTabs = (
 
       ipcRenderer.once(
         'api-tabs-getZoom',
-        (e: Electron.IpcMessageEvent, zoomFactor: number) => {
+        (e, zoomFactor: number) => {
           if (callback) {
             callback(zoomFactor);
           }
@@ -178,7 +178,7 @@ export const getTabs = (
 
       ipcRenderer.once(
         'api-tabs-detectLanguage',
-        (e: Electron.IpcMessageEvent, language: string) => {
+        (e, language: string) => {
           if (callback) {
             callback(language);
           }
@@ -210,7 +210,7 @@ export const getTabs = (
       if (typeof responseCallback === 'function') {
         ipcRenderer.on(
           `api-tabs-sendMessage-response-${portId}`,
-          (e: Electron.IpcMessageEvent, res: any) => {
+          (e, res: any) => {
             responseCallback(res);
           },
         );

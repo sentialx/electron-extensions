@@ -47,7 +47,7 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
 
   ipcRenderer.on(
     'api-runtime-connect',
-    (e: Electron.IpcMessageEvent, data: any) => {
+    (e, data: any) => {
       const { portId, sender, name } = data;
       const port = new Port(sessionId, portId, name, sender);
 
@@ -57,7 +57,7 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
 
   ipcRenderer.on(
     'api-runtime-sendMessage',
-    (e: Electron.IpcMessageEvent, data: any, webContentsId: number) => {
+    (e, data: any, webContentsId: number) => {
       const { portId, sender, message } = data;
 
       const sendResponse = (msg: any) => {
@@ -72,7 +72,7 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
 
   ipcRenderer.on(
     'api-tabs-sendMessage',
-    (e: Electron.IpcMessageEvent, data: any, webContentsId: number) => {
+    (e, data: any, webContentsId: number) => {
       const { portId, sender, message } = data;
 
       const sendResponse = (msg: any) => {

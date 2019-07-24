@@ -47,7 +47,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
     if (typeof responseCallback === 'function') {
       ipcRenderer.on(
         `api-runtime-sendMessage-response-${portId}`,
-        (e: Electron.IpcMessageEvent, res: any) => {
+        (e, res: any) => {
           responseCallback(res);
         },
       );

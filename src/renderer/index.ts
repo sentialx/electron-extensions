@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ipcRenderer, IpcMessageEvent, remote } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { IpcExtension } from '../models/ipc-extension';
 
 let webContentsId = -1;
@@ -44,11 +44,7 @@ export class ExtensionsRenderer extends EventEmitter {
 
     ipcRenderer.on(
       'api-tabs-create',
-      (
-        e: IpcMessageEvent,
-        responseId: string,
-        details: chrome.tabs.CreateProperties,
-      ) => {
+      (e, responseId: string, details: chrome.tabs.CreateProperties) => {
         const callback = (id: number) => {
           ipcRenderer.send(`api-tabs-create-${responseId}`, id);
         };
@@ -60,7 +56,7 @@ export class ExtensionsRenderer extends EventEmitter {
     ipcRenderer.on(
       'api-browserAction-setBadgeText',
       (
-        e: IpcMessageEvent,
+        e,
         responseId: string,
         extensionId: string,
         details: chrome.browserAction.BadgeTextDetails,

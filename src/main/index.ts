@@ -1,6 +1,5 @@
 import {
   Session,
-  IpcMessageEvent,
   ipcMain,
   app,
   WebContents,
@@ -34,7 +33,7 @@ const sessions: ExtensibleSession[] = [];
 export const extensions: { [key: string]: Extension } = {};
 
 if (ipcMain) {
-  ipcMain.on('get-session-id', (e: IpcMessageEvent) => {
+  ipcMain.on('get-session-id', e => {
     let ses = sessions.find(x => x.session === e.sender.session);
 
     if (ses) {
@@ -162,7 +161,7 @@ export class ExtensibleSession {
 
     ipcMain.on(
       `api-browserAction-onClicked-${window.webContents.id}`,
-      (e: IpcMessageEvent, extensionId: string, tabId: number) => {
+      (e, extensionId: string, tabId: number) => {
         const tab = webContentsToTab(webContents.fromId(tabId));
         this.extensions[extensionId].backgroundPage.webContents.send(
           'api-emit-event-browserAction-onClicked',
@@ -171,17 +170,14 @@ export class ExtensibleSession {
       },
     );
 
-    ipcMain.on(
-      `get-extensions-${window.webContents.id}`,
-      (e: IpcMessageEvent) => {
-        const list = { ...this.extensions };
+    ipcMain.on(`get-extensions-${window.webContents.id}`, e => {
+      const list = { ...this.extensions };
 
-        for (const key in list) {
-          list[key] = getIpcExtension(list[key]);
-        }
+      for (const key in list) {
+        list[key] = getIpcExtension(list[key]);
+      }
 
-        e.returnValue = list;
-      },
-    );
+      e.returnValue = list;
+    });
   }
 }

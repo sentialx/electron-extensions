@@ -32,7 +32,7 @@ export const getIpcExtension = (extension: IpcExtension): IpcExtension => {
 export const startBackgroundPage = async (
   { background, srcDirectory, extensionId }: chrome.runtime.Manifest,
   sessionId: number,
-  preloadPath: string
+  preloadPath: string,
 ) => {
   if (background) {
     const { page, scripts } = background;
@@ -92,7 +92,9 @@ export const sendToBackgroundPages = (
 ) => {
   for (const key in ses.extensions) {
     const { webContents } = ses.extensions[key].backgroundPage;
-    webContents.send(msg, ...args);
+    if (!webContents.isDestroyed()) {
+      webContents.send(msg, ...args);
+    }
   }
 };
 
@@ -130,7 +132,7 @@ const loadI18n = async (manifest: chrome.runtime.Manifest) => {
 export const loadExtension = async (
   manifest: chrome.runtime.Manifest,
   sessionId: number,
-  preloadPath: string
+  preloadPath: string,
 ) => {
   const extension: IpcExtension = {
     manifest,

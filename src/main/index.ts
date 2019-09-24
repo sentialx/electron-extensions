@@ -93,7 +93,7 @@ export class ExtensibleSession {
   private options: IOptions = {
     contentPreloadPath: resolve(__dirname, 'content-preload.bundle.js'),
     backgroundPreloadPath: resolve(__dirname, 'background-preload.bundle.js'),
-  }
+  };
 
   constructor(public session: Session, options: IOptions = {}) {
     registerProtocols(this);
@@ -118,7 +118,9 @@ export class ExtensibleSession {
 
   async loadExtension(dir: string) {
     if (!this._initialized) {
-      this.session.setPreloads(this.session.getPreloads().concat([this.options.contentPreloadPath]));
+      this.session.setPreloads(
+        this.session.getPreloads().concat([this.options.contentPreloadPath]),
+      );
 
       runWebRequestService(this);
       runMessagingService(this);
@@ -149,7 +151,11 @@ export class ExtensibleSession {
     manifest.srcDirectory = dir;
     manifest.extensionId = id;
 
-    const extension = await loadExtension(manifest, this.id, this.options.backgroundPreloadPath);
+    const extension = await loadExtension(
+      manifest,
+      this.id,
+      this.options.backgroundPreloadPath,
+    );
     this.extensions[id] = extension;
 
     const webContents = getAllWebContentsInSession(this.session);

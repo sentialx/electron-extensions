@@ -1,120 +1,151 @@
-import levelup, { LevelUp } from 'levelup';
-import leveldown from 'leveldown';
 import { mkDirByPathSync } from '../utils/paths';
+import { makeId } from '../utils/string';
+import { EventEmitter } from 'events';
+import { promises, existsSync } from 'fs';
 
-export class StorageArea {
-  public db: LevelUp;
-
+export class StorageArea extends EventEmitter {
   private path: string;
 
+  private queue: string[] = [];
+
   constructor(path: string) {
+    super();
+
     this.path = path;
 
     mkDirByPathSync(path);
 
-    this.db = (levelup as any)(leveldown(this.path));
+    if (!existsSync(path)) {
+      this.clear();
+    }
   }
 
-  public get(query: any, callback: (data: any) => void) {
-    if (query === null) {
-      const result: any = {};
+  private async _save(content: string) {
+    try {
+      await promises.writeFile(
+        this.path,
+        content,
+      );
 
-      this.db
-        .createReadStream()
-        .on('data', (data: any) => {
-          result[data.key] = data.value;
-        })
-        .on('end', () => {
-          callback(result);
-        });
-    } else if (Array.isArray(query)) {
-      const result: any = {};
+      if (this.queue.length >= 3) {
+        for (let i = this.queue.length - 1; i > 0; i--) {
+          this.removeAllListeners(this.queue[i]);
+          this.queue.splice(i, 1);
+        }
+      } else {
+        this.queue.splice(0, 1);
+      }
 
-      this.db
-        .createReadStream()
-        .on('data', (data: any) => {
-          for (const key of query) {
-            if (key === data.key) {
-              result[data.key] = data.value;
+      if (this.queue[0]) {
+        this.emit(this.queue[0]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  public async save(content: string) {
+    const id = makeId(32);
+
+    this.queue.push(id);
+
+    if (this.queue.length === 1) {
+      this._save(content);
+    } else {
+      this.once(id, () => {
+        this._save(content);
+      });
+    }
+  }
+
+  public async get(query: any): Promise<any> {
+    try {
+      if (query === null || query === undefined) {
+        const result: any = {};
+  
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
+  
+        for (const key in data) {
+          result[key] = data[key];
+        }
+        
+        return result;
+      } else if (Array.isArray(query)) {
+        const result: any = {};
+  
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
+  
+        for (const key in data) {
+          for (const key1 of query) {
+            if (key === key1) {
+              result[key] = data[key];
             }
-          }
-        })
-        .on('end', () => {
-          callback(result);
-        });
-    } else if (typeof query === 'object') {
-      const result: any = { ...query };
-
-      this.db
-        .createReadStream()
-        .on('data', (data: any) => {
-          for (const key in query) {
-            if (key === data.key && data.value !== undefined) {
-              result[data.key] = data.value;
-            }
-          }
-        })
-        .on('end', () => {
-          callback(result);
-        });
-    } else if (typeof query === 'string') {
-      this.db.get(query, (err: any, value) => {
-        if (err) {
-          if (err.notFound) {
-            return callback({});
           }
         }
-
-        callback({ [query]: value });
-      });
-    } else {
-      callback({});
+        
+        return result;
+      } else if (typeof query === 'object') {
+        const result: any = { ...query };
+  
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
+  
+        for (const key in data) {
+          for (const key1 in query) {
+            if (key1 === key && data[key] !== undefined) {
+              result[key] = data[key];
+            }
+          }
+        }
+  
+        return result;
+      } else if (typeof query === 'string') {
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
+  
+        for (const key in data) {
+          if (key === query) {
+            return { [query]: data[key] };
+          }
+        }
+  
+        return {};
+      } else {
+        return {};
+      }
+    } catch (e) {
+      return {};
     }
   }
 
-  public set(items: any, callback: any) {
+  public async set(items: any): Promise<void> {
     if (items === Object(items)) {
-      const batch = this.db.batch();
+      const newData: any = this.get(null);
 
       for (const key in items) {
-        batch.put(key, JSON.stringify(items[key]).toString());
+        if (items[key] === undefined) {
+          delete newData[key];
+        } else {
+          newData[key] = items[key];
+        }
+        
       }
 
-      batch.write(() => {
-        callback();
-      });
+      await this.save(JSON.stringify(newData));
     }
   }
 
-  public remove(keys: any, callback: any) {
+  public async remove(keys: any): Promise<void> {
     if (typeof keys === 'string') {
-      this.db.del(keys, err => {
-        callback();
-      });
+      await this.set({ [keys]: undefined });
     } else if (Array.isArray(keys)) {
-      const batch = this.db.batch();
-
       for (const key of keys) {
-        batch.del(key);
+        await this.set({ [key]: undefined });
       }
-
-      batch.write(() => {
-        callback();
-      });
     } else {
       // error
     }
   }
 
-  public clear(callback: any) {
-    this.get(null, data => {
-      const batch = this.db.batch();
-      for (const key in data) {
-        batch.del(key);
-      }
-      batch.write(() => {
-        callback();
-      });
-    });
+  public async clear(): Promise<void> {
+    await this.save('{}');
   }
 }

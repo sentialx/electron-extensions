@@ -155,33 +155,29 @@ export const runMessagingService = (ses: ExtensibleSession) => {
 
   ipcMain.on(
     `api-storage-operation-${ses.id}`,
-    (e, { extensionId, id, area, type, arg }: any) => {
+    async (e, { extensionId, id, area, type, arg }: any) => {
       const storage = storages.get(extensionId);
 
       const contents = webContents.fromId(e.sender.id);
       const msg = `api-storage-operation-${id}`;
 
       if (type === 'get') {
-        storage[area].get(arg, d => {
-          for (const key in d) {
-            if (Buffer.isBuffer(d[key])) {
-              d[key] = JSON.parse(d[key].toString());
-            }
+        const res = await storage[area].get(arg);
+        for (const key in res) {
+          if (Buffer.isBuffer(res[key])) {
+            res[key] = JSON.parse(res[key].toString());
           }
-          contents.send(msg, d);
-        });
+        }
+        contents.send(msg, res);
       } else if (type === 'set') {
-        storage[area].set(arg, () => {
-          contents.send(msg);
-        });
+        await storage[area].set(arg);
+        contents.send(msg);
       } else if (type === 'clear') {
-        storage[area].clear(() => {
-          contents.send(msg);
-        });
+        await storage[area].clear();
+        contents.send(msg);
       } else if (type === 'remove') {
-        storage[area].set(arg, () => {
-          contents.send(msg);
-        });
+        await storage[area].remove(arg);
+        contents.send(msg);
       }
     },
   );

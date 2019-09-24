@@ -35,8 +35,6 @@
   ],
   "devDependencies": {
     "@types/chrome": "0.0.86",
-    "@types/leveldown": "4.0.0",
-    "@types/levelup": "3.1.1",
     "@types/node": "12.6.8",
     "electron": "6.0.0-beta.15",
     "prettier": "1.18.2",
@@ -45,10 +43,7 @@
     "tslint-config-prettier": "1.18.0",
     "typescript": "3.5.3"
   },
-  "dependencies": {
-    "leveldown": "5.1.1",
-    "levelup": "4.1.0"
-  },
+  "dependencies": {},
   "files": [
     "build/"
   ]

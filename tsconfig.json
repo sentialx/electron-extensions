@@ -6,6 +6,7 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
+    "skipLibCheck": true,
 
     "declaration": true,
 

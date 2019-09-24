@@ -74,6 +74,11 @@ if (ipcMain) {
   });
 }
 
+export interface IOptions {
+  contentPreloadPath?: string;
+  backgroundPreloadPath?: string;
+}
+
 export class ExtensibleSession {
   public extensions: { [key: string]: IpcExtension } = {};
 
@@ -85,8 +90,15 @@ export class ExtensibleSession {
 
   private _initialized = false;
 
-  constructor(public session: Session) {
+  private options: IOptions = {
+    contentPreloadPath: resolve(__dirname, '..', 'renderer/content/index.js'),
+    backgroundPreloadPath: resolve(__dirname, '..', 'renderer/background/index.js'),
+  }
+
+  constructor(public session: Session, options: IOptions = {}) {
     registerProtocols(this);
+
+    this.options = { ...this.options, ...options };
 
     sessions.push(this);
 
@@ -106,7 +118,7 @@ export class ExtensibleSession {
 
   async loadExtension(dir: string) {
     if (!this._initialized) {
-      this.session.setPreloads([`${__dirname}/../renderer/content/index.js`]);
+      this.session.setPreloads(this.session.getPreloads().concat([this.options.contentPreloadPath]));
 
       runWebRequestService(this);
       runMessagingService(this);
@@ -137,7 +149,7 @@ export class ExtensibleSession {
     manifest.srcDirectory = dir;
     manifest.extensionId = id;
 
-    const extension = await loadExtension(manifest, this.id);
+    const extension = await loadExtension(manifest, this.id, this.options.backgroundPreloadPath);
     this.extensions[id] = extension;
 
     const webContents = getAllWebContentsInSession(this.session);

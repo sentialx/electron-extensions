@@ -32,6 +32,7 @@ export const getIpcExtension = (extension: IpcExtension): IpcExtension => {
 export const startBackgroundPage = async (
   { background, srcDirectory, extensionId }: chrome.runtime.Manifest,
   sessionId: number,
+  preloadPath: string
 ) => {
   if (background) {
     const { page, scripts } = background;
@@ -58,7 +59,7 @@ export const startBackgroundPage = async (
     const contents: WebContents = (webContents as any).create({
       partition: `persist:electron-extension-${sessionId}`,
       isBackgroundPage: true,
-      preload: resolve(__dirname, '..', 'renderer/background/index.js'),
+      preload: preloadPath,
       commandLineSwitches: ['--background-page'],
       webPreferences: {
         nodeIntegration: true,
@@ -129,6 +130,7 @@ const loadI18n = async (manifest: chrome.runtime.Manifest) => {
 export const loadExtension = async (
   manifest: chrome.runtime.Manifest,
   sessionId: number,
+  preloadPath: string
 ) => {
   const extension: IpcExtension = {
     manifest,
@@ -136,7 +138,7 @@ export const loadExtension = async (
     locale: await loadI18n(manifest),
     id: manifest.extensionId,
     path: manifest.srcDirectory,
-    backgroundPage: await startBackgroundPage(manifest, sessionId),
+    backgroundPage: await startBackgroundPage(manifest, sessionId, preloadPath),
   };
 
   if (!storages.get(manifest.extensionId)) {

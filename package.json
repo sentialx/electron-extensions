@@ -10,7 +10,7 @@
     "typescript"
   ],
   "homepage": "https://github.com/wexond/electron-extensions#readme",
-  "main": "build/index.js",
+  "main": "build/index.bundle.js",
   "types": "build/index.d.ts",
   "author": {
     "name": "Eryk Rakowski",
@@ -26,8 +26,8 @@
   "scripts": {
     "lint": "eslint \"src/**/*.ts*\"",
     "lint-fix": "npm run lint -- --fix",
-    "watch": "tsc --watch",
-    "build": "tsc",
+    "watch": "cross-env ENV='dev' webpack",
+    "build": "webpack && tsc --declaration",
     "prepublishOnly": "npm run build"
   },
   "pre-commit": [
@@ -36,14 +36,19 @@
   "devDependencies": {
     "@types/chrome": "0.0.89",
     "@types/node": "12.7.5",
-    "electron": "6.0.10",
-    "typescript": "3.6.3",
     "@typescript-eslint/eslint-plugin": "^2.3.0",
     "@typescript-eslint/parser": "^2.3.0",
+    "cross-env": "^6.0.0",
+    "electron": "6.0.10",
     "eslint": "^6.4.0",
     "eslint-config-prettier": "^6.3.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "prettier": "1.18.2"
+    "prettier": "1.18.2",
+    "ts-loader": "^6.1.2",
+    "typescript": "3.6.3",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-merge": "^4.2.2"
   },
   "dependencies": {},
   "files": [

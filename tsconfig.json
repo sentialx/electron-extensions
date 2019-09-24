@@ -1,22 +1,24 @@
 {
   "compilerOptions": {
     "outDir": "./build/",
-
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
     "skipLibCheck": true,
-
     "declaration": true,
-
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "lib": ["esnext", "dom"],
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "experimentalDecorators": true
   },
-  "include": ["./src/**/*.ts"]
+  "include": [
+    "./src/**/*.ts"
+  ]
 }

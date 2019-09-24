@@ -2,6 +2,7 @@ import { mkDirByPathSync } from '../utils/paths';
 import { makeId } from '../utils/string';
 import { EventEmitter } from 'events';
 import { promises, existsSync } from 'fs';
+import { resolve } from 'path';
 
 export class StorageArea extends EventEmitter {
   private path: string;
@@ -11,7 +12,7 @@ export class StorageArea extends EventEmitter {
   constructor(path: string) {
     super();
 
-    this.path = path;
+    this.path = resolve(path, 'storage.db');
 
     mkDirByPathSync(path);
 

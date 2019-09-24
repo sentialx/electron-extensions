@@ -27,7 +27,7 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "lint-fix": "npm run lint -- --fix",
     "watch": "cross-env ENV='dev' webpack",
-    "build": "webpack && tsc --declaration",
+    "build": "webpack",
     "prepublishOnly": "npm run build"
   },
   "pre-commit": [

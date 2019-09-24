@@ -25,10 +25,6 @@ const config = {
         use: [
           {
             loader: 'ts-loader',
-            options: {
-              experimentalWatchApi: true,
-              transpileOnly: true,
-            },
           },
         ],
 

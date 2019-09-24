@@ -7,6 +7,34 @@ import { IpcExtension } from '../../models/ipc-extension';
 import { getAPI } from '../api';
 import { getIsolatedWorldId } from '../../utils/isolated-worlds';
 
+export const injectChromeApi = (
+  extension: IpcExtension,
+  worldId: number,
+  sessionId: number,
+) => {
+  return new Promise(resolve => {
+    const context = getAPI(extension, sessionId);
+
+    webFrame.setIsolatedWorldInfo(worldId, {
+      name,
+    });
+
+    webFrame.executeJavaScriptInIsolatedWorld(
+      worldId,
+      [
+        {
+          code: 'window',
+        },
+      ],
+      false,
+      (window: any) => {
+        window.chrome = window.browser = context;
+        resolve();
+      },
+    );
+  });
+};
+
 const runContentScript = async (
   url: string,
   code: string,
@@ -97,32 +125,4 @@ export const injectContentScript = (
       }
     });
   }
-};
-
-export const injectChromeApi = (
-  extension: IpcExtension,
-  worldId: number,
-  sessionId: number,
-) => {
-  return new Promise(resolve => {
-    const context = getAPI(extension, sessionId);
-
-    webFrame.setIsolatedWorldInfo(worldId, {
-      name,
-    });
-
-    webFrame.executeJavaScriptInIsolatedWorld(
-      worldId,
-      [
-        {
-          code: 'window',
-        },
-      ],
-      false,
-      (window: any) => {
-        window.chrome = window.browser = context;
-        resolve();
-      },
-    );
-  });
 };

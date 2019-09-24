@@ -1,4 +1,4 @@
-import { ipcRenderer, webFrame, remote } from 'electron';
+import { ipcRenderer, webFrame } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -7,6 +7,18 @@ import { injectContentScript } from './inject';
 import { webContentsValid } from '../../utils/web-contents';
 
 const sessionId: number = ipcRenderer.sendSync('get-session-id');
+
+const arg = process.argv.find(x => x.startsWith('--blacklist='));
+
+let blackList: string[] = [];
+
+if (arg) {
+  try {
+    blackList = JSON.parse(arg.split('--blacklist=')[1]);
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 if (sessionId !== -1) {
   const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
@@ -33,6 +45,8 @@ if (sessionId !== -1) {
 
   process.once('loaded', () => {
     global.setImmediate = setImmediateTemp;
+
+    if (blackList.find(x => window.location.href.startsWith(x))) return;
 
     Object.keys(extensions).forEach(key => {
       const extension = extensions[key];

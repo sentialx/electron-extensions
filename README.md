@@ -33,6 +33,31 @@ app.on('ready', () => {
 
 - `session` Electron.Session - used for injecting preloads to load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
 
+If the `webContents` are in multiple `BrowserWindows`, the `--window-id=<the BrowserWindow id>` additional argument should be passed to the `webContents`.
+For reference see [`the Electron documentation`](https://electronjs.org/docs/api/browser-window#new-browserwindowoptions).
+
+For example:
+```js
+{
+  webPreferences: {
+    additionalArguments: ['--window-id=1'],
+  },
+}
+```
+
+If you want to prevent injecting `content_scripts` to some URLs that start with a specified string, use `--blacklist=`.
+
+For example:
+```js
+{
+  webPreferences: {
+    additionalArguments: ['--blacklist=["wexond://"]'],
+  },
+}
+```
+
+It means all URLs starting with `wexond://` should be protected from injecting `content_scripts`.
+
 It's only for the main process. It's used to load extensions and handle their events.
 
 ### Instance methods

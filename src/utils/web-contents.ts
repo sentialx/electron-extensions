@@ -16,6 +16,7 @@ export const webContentsToTab = (wc: WebContents): chrome.tabs.Tab => ({
   url: wc.getURL(),
   title: wc.getTitle(),
   incognito: false,
+  audible: wc.isCurrentlyAudible(),
 });
 
 export const getAllWebContentsInSession = (ses: Electron.Session) => {

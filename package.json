@@ -1,6 +1,6 @@
 {
   "name": "electron-extensions",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "Implementation of Chrome extension APIs for Electron",
   "keywords": [
     "electron",
@@ -35,7 +35,7 @@
   ],
   "devDependencies": {
     "@types/chrome": "0.0.89",
-    "@types/node": "12.7.7",
+    "@types/node": "12.7.8",
     "@typescript-eslint/eslint-plugin": "^2.3.1",
     "@typescript-eslint/parser": "^2.3.1",
     "cross-env": "^6.0.0",

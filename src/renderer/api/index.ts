@@ -45,15 +45,12 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
     },
   };
 
-  ipcRenderer.on(
-    'api-runtime-connect',
-    (e, data: any) => {
-      const { portId, sender, name } = data;
-      const port = new Port(sessionId, portId, name, sender);
+  ipcRenderer.on('api-runtime-connect', (e, data: any) => {
+    const { portId, sender, name } = data;
+    const port = new Port(sessionId, portId, name, sender);
 
-      api.runtime.onConnect.emit(port);
-    },
-  );
+    api.runtime.onConnect.emit(port);
+  });
 
   ipcRenderer.on(
     'api-runtime-sendMessage',

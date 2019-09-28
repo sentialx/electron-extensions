@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { LocalEvent } from '../renderer/api/events/local-event';
+import { LocalEvent } from './local-event';
 
 export class Port {
   public sender: chrome.runtime.MessageSender;

@@ -46,7 +46,7 @@ export interface IAliasParameters {
   unbind: boolean;
   filter: IFilter;
   action: Function | null;
-  context: Object;
+  context: Record<string, any>;
 }
 
 export type IListenerCollection = Map<IListener['id'], IListener>;

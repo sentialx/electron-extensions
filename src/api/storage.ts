@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 
-import { makeId } from '../../utils/string';
+import { makeId } from '../utils/string';
 
 const sendStorageOperation = (
   extensionId: string,

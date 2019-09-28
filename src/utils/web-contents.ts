@@ -1,8 +1,5 @@
 import { WebContents, webContents } from 'electron';
 
-import { sendToBackgroundPages } from './extensions';
-import { ExtensibleSession } from '..';
-
 export const webContentsToTab = (wc: WebContents): chrome.tabs.Tab => ({
   id: wc.id,
   index: wc.id,

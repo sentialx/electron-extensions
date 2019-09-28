@@ -2,9 +2,8 @@ import { ipcRenderer, webFrame } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { IpcExtension } from '../../models/ipc-extension';
+import { IpcExtension } from '../models/ipc-extension';
 import { injectContentScript } from './inject';
-import { webContentsValid } from '../../utils/web-contents';
 
 const sessionId: number = ipcRenderer.sendSync('get-session-id');
 

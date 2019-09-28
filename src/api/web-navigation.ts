@@ -1,4 +1,4 @@
-import { IpcEvent } from './events/ipc-event';
+import { IpcEvent } from '../models/ipc-event';
 
 export const getWebNavigation = () => ({
   onBeforeNavigate: new IpcEvent('webNavigation', 'onBeforeNavigate'),

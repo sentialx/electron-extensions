@@ -2,11 +2,7 @@ import { EventEmitter } from 'events';
 import { ipcRenderer, remote } from 'electron';
 import { IpcExtension } from '../models/ipc-extension';
 
-let webContentsId = -1;
-
-if (remote) {
-  webContentsId = remote.getCurrentWebContents().id;
-}
+const webContentsId = remote.getCurrentWebContents().id;
 
 export declare interface ExtensionsRenderer {
   on(
@@ -39,8 +35,6 @@ export class ExtensionsRenderer extends EventEmitter {
 
   constructor() {
     super();
-
-    if (!ipcRenderer) return;
 
     ipcRenderer.on(
       'api-tabs-create',

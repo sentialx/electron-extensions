@@ -2,10 +2,10 @@ import { runInThisContext } from 'vm';
 import { format, parse } from 'url';
 import { webFrame } from 'electron';
 
-import { matchesPattern } from '../../utils/url';
-import { IpcExtension } from '../../models/ipc-extension';
+import { matchesPattern } from '../utils/url';
+import { IpcExtension } from '../models/ipc-extension';
 import { getAPI } from '../api';
-import { getIsolatedWorldId } from '../../utils/isolated-worlds';
+import { getIsolatedWorldId } from '../utils/isolated-worlds';
 
 export const injectChromeApi = (
   extension: IpcExtension,

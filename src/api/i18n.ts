@@ -1,5 +1,5 @@
-import { IpcExtension } from '../../models/ipc-extension';
-import { replaceAll } from '../../utils/string';
+import { IpcExtension } from '../models/ipc-extension';
+import { replaceAll } from '../utils/string';
 
 export const getI18n = (extension: IpcExtension) => ({
   getAcceptLanguages: (cb: any) => {

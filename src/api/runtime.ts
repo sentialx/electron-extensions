@@ -1,11 +1,11 @@
-import { remote, ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
 import { format } from 'url';
 
-import { IpcExtension } from '../../models/ipc-extension';
-import { LocalEvent } from './events/local-event';
-import { makeId } from '../../utils/string';
-import { Port } from '../../models/port';
-import { getSenderTab } from '../../utils/sender';
+import { IpcExtension } from '../models/ipc-extension';
+import { LocalEvent } from '../models/local-event';
+import { makeId } from '../utils/string';
+import { Port } from '../models/port';
+import { getSenderTab } from '../utils/sender';
 
 export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   lastError: null as any,

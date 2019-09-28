@@ -1,4 +1,4 @@
-import { WebRequestEvent } from './events/web-request-event';
+import { WebRequestEvent } from '../models/web-request-event';
 
 export const getWebRequest = () => ({
   ResourceType: {

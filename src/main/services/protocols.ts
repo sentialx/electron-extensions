@@ -20,15 +20,6 @@ if (protocol) {
   ]);
 }
 
-export const registerProtocols = (ses: ExtensibleSession) => {
-  registerProtocol(
-    ses,
-    session.fromPartition(`persist:electron-extension-${ses.id}`),
-  );
-
-  registerProtocol(ses, ses.session);
-};
-
 const registerProtocol = (
   extensibleSession: ExtensibleSession,
   ses: Electron.Session,
@@ -73,4 +64,13 @@ const registerProtocol = (
       }
     },
   );
+};
+
+export const registerProtocols = (ses: ExtensibleSession) => {
+  registerProtocol(
+    ses,
+    session.fromPartition(`persist:electron-extension-${ses.id}`),
+  );
+
+  registerProtocol(ses, ses.session);
 };

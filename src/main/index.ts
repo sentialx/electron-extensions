@@ -89,8 +89,8 @@ export class ExtensibleSession {
   private _initialized = false;
 
   private options: IOptions = {
-    contentPreloadPath: resolve(__dirname, 'content-preload.bundle.js'),
-    backgroundPreloadPath: resolve(__dirname, 'background-preload.bundle.js'),
+    contentPreloadPath: resolve(__dirname, 'content-preload.js'),
+    backgroundPreloadPath: resolve(__dirname, 'background-preload.js'),
   };
 
   constructor(public session: Session, options: IOptions = {}) {

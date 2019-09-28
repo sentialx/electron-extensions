@@ -5,7 +5,7 @@ import { IpcExtension } from '../models/ipc-extension';
 import { LocalEvent } from '../models/local-event';
 import { makeId } from '../utils/string';
 import { Port } from '../models/port';
-import { getSenderTab } from '../utils/sender';
+import { getSenderContent } from '../utils/sender';
 
 export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   lastError: null as any,
@@ -15,7 +15,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   onInstalled: new LocalEvent(),
 
   sendMessage: (...args: any[]) => {
-    const sender = getSenderTab(extension.id);
+    const sender = getSenderContent(extension.id);
     const portId = makeId(32);
 
     let extensionId = args[0];
@@ -62,7 +62,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   },
 
   connect: (...args: any[]) => {
-    const sender = getSenderTab(extension.id);
+    const sender = getSenderContent(extension.id);
     const portId = makeId(32);
 
     let name: string = null;

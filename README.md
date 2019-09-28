@@ -13,7 +13,7 @@ $ npm install electron-extensions
 The library is really easy-to-use. All you have to do is to put the following code in your main process:
 
 ```typescript
-import { ExtensibleSession } from 'electron-extensions';
+import { ExtensibleSession } from 'electron-extensions/main';
 import { app, session } from 'electron';
 
 app.on('ready', () => {
@@ -75,7 +75,7 @@ Adds a BrowserWindow to send and observe UI related events such as `chrome.brows
 ### Usage in `renderer`
 
 ```typescript
-import { extensionsRenderer } from 'electron-extensions';
+import { extensionsRenderer } from 'electron-extensions/renderer';
 ```
 
 ### Instance methods

@@ -29,8 +29,8 @@
     "lint-fix": "npm run lint -- --fix",
     "watch": "cross-env ENV='dev' webpack",
     "build": "webpack",
-    "publish": "rimraf build && npm run build && ncp package.json build/package.json && cd build && npm publish",
-    "link": "npm run build && ncp package.json build/package.json && cd build && npm link"
+    "pub": "rimraf build && npm run build && ncp package.json build/package.json && cd build && npm publish",
+    "lnk": "npm run build && ncp package.json build/package.json && cd build && npm link"
   },
   "pre-commit": [
     "lint-fix"

@@ -27,7 +27,7 @@ export class Port {
     this.portId = portId;
 
     ipcRenderer.on(`api-port-postMessage-${portId}`, (e, msg, tab) => {
-      if (tab) {
+      if (tab && this.sender) {
         this.sender.tab = tab;
       }
       this.onMessage.emit(msg, this);

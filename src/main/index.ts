@@ -33,26 +33,25 @@ const sessions: ExtensibleSession[] = [];
 
 export const storages: Map<string, IStorage> = new Map();
 
-if (ipcMain) {
-  ipcMain.on('get-session-id', e => {
-    let ses = sessions.find(x => x.session === e.sender.session);
+ipcMain.on('get-session-id', e => {
+  let ses = sessions.find(x => x.session === e.sender.session);
 
+  if (ses) {
+    e.returnValue = ses.id;
+  } else {
+    ses = sessions.find(x => {
+      const extension = Object.values(x.extensions).find(
+        x => x.backgroundPage.webContents.id === e.sender.id,
+      );
+      return !!extension;
+    });
     if (ses) {
       e.returnValue = ses.id;
-    } else {
-      ses = sessions.find(x => {
-        const extension = Object.values(x.extensions).find(
-          x => x.backgroundPage.webContents.id === e.sender.id,
-        );
-        return !!extension;
-      });
-      if (ses) {
-        e.returnValue = ses.id;
-        return;
-      }
+      return;
     }
+  }
 
-    /*const wc = webContents
+  /*const wc = webContents
       .getAllWebContents()
       .find(
         x =>
@@ -70,9 +69,8 @@ if (ipcMain) {
       }
     }*/
 
-    e.returnValue = -1;
-  });
-}
+  e.returnValue = -1;
+});
 
 export interface IOptions {
   contentPreloadPath?: string;

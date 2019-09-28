@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { LocalEvent } from './local-event';
+import { getSenderTab } from '../utils/sender';
 
 export class Port {
   public sender: chrome.runtime.MessageSender;
@@ -25,7 +26,10 @@ export class Port {
 
     this.portId = portId;
 
-    ipcRenderer.on(`api-port-postMessage-${portId}`, (e: any, msg: any) => {
+    ipcRenderer.on(`api-port-postMessage-${portId}`, (e, msg, tab) => {
+      if (tab) {
+        this.sender.tab = tab;
+      }
       this.onMessage.emit(msg, this);
     });
   }
@@ -35,9 +39,15 @@ export class Port {
   }
 
   public postMessage(msg: any) {
+    let tab: any = null;
+    if (this.sender.tab) {
+      tab = getSenderTab();
+    }
+
     ipcRenderer.send(`api-port-postMessage-${this.sessionId}`, {
       portId: this.portId,
       msg,
+      tab,
     });
   }
 }

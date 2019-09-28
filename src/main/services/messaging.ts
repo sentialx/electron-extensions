@@ -133,25 +133,28 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     }
   });
 
-  ipcMain.on(`api-port-postMessage-${ses.id}`, (e, { portId, msg }: any) => {
-    if (webContentsValid(e.sender)) {
-      Object.keys(ses.extensions).forEach(key => {
-        const { backgroundPage } = ses.extensions[key];
-        const contents = backgroundPage.webContents;
+  ipcMain.on(
+    `api-port-postMessage-${ses.id}`,
+    (e, { portId, msg, tab }: any) => {
+      if (webContentsValid(e.sender)) {
+        Object.keys(ses.extensions).forEach(key => {
+          const { backgroundPage } = ses.extensions[key];
+          const contents = backgroundPage.webContents;
 
-        if (e.sender.id !== contents.id) {
-          contents.send(`api-port-postMessage-${portId}`, msg);
-        }
-      });
-    } else {
-      const contents = getAllWebContentsInSession(ses.session);
-      for (const content of contents) {
-        if (content.id !== e.sender.id) {
-          content.send(`api-port-postMessage-${portId}`, msg);
+          if (e.sender.id !== contents.id) {
+            contents.send(`api-port-postMessage-${portId}`, msg, tab);
+          }
+        });
+      } else {
+        const contents = getAllWebContentsInSession(ses.session);
+        for (const content of contents) {
+          if (content.id !== e.sender.id) {
+            content.send(`api-port-postMessage-${portId}`, msg, tab);
+          }
         }
       }
-    }
-  });
+    },
+  );
 
   ipcMain.on(
     `api-storage-operation-${ses.id}`,

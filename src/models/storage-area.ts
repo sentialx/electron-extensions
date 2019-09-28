@@ -23,10 +23,7 @@ export class StorageArea extends EventEmitter {
 
   private async _save(content: string) {
     try {
-      await promises.writeFile(
-        this.path,
-        content,
-      );
+      await promises.writeFile(this.path, content);
 
       if (this.queue.length >= 3) {
         for (let i = this.queue.length - 1; i > 0; i--) {
@@ -63,19 +60,19 @@ export class StorageArea extends EventEmitter {
     try {
       if (query === null || query === undefined) {
         const result: any = {};
-  
-        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
-  
+
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'));
+
         for (const key in data) {
           result[key] = data[key];
         }
-        
+
         return result;
       } else if (Array.isArray(query)) {
         const result: any = {};
-  
-        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
-  
+
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'));
+
         for (const key in data) {
           for (const key1 of query) {
             if (key === key1) {
@@ -83,13 +80,13 @@ export class StorageArea extends EventEmitter {
             }
           }
         }
-        
+
         return result;
       } else if (typeof query === 'object') {
         const result: any = { ...query };
-  
-        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
-  
+
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'));
+
         for (const key in data) {
           for (const key1 in query) {
             if (key1 === key && data[key] !== undefined) {
@@ -97,17 +94,17 @@ export class StorageArea extends EventEmitter {
             }
           }
         }
-  
+
         return result;
       } else if (typeof query === 'string') {
-        const data = JSON.parse(await promises.readFile(this.path, 'utf8'))
-  
+        const data = JSON.parse(await promises.readFile(this.path, 'utf8'));
+
         for (const key in data) {
           if (key === query) {
             return { [query]: data[key] };
           }
         }
-  
+
         return {};
       } else {
         return {};
@@ -127,7 +124,6 @@ export class StorageArea extends EventEmitter {
         } else {
           newData[key] = items[key];
         }
-        
       }
 
       await this.save(JSON.stringify(newData));

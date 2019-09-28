@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { hashCode } from '../../../utils/string';
+import { hashCode } from '../utils/string';
 
 export class WebRequestEvent {
   private name: string;

@@ -1,10 +1,10 @@
-import { ipcRenderer, IpcRendererEvent } from 'electron';
+import { ipcRenderer } from 'electron';
 
 export class IpcEvent {
   private scope: string;
   private name: string;
   private callbacks: Function[] = [];
-  private listener: boolean = false;
+  private listener = false;
 
   constructor(scope: string, name: string) {
     this.name = name;

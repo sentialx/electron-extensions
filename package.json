@@ -10,8 +10,9 @@
     "typescript"
   ],
   "homepage": "https://github.com/wexond/electron-extensions#readme",
-  "main": "build/index.bundle.js",
-  "types": "build/index.d.ts",
+  "exports": {
+    "./": "./build/"
+  },
   "author": {
     "name": "Eryk Rakowski",
     "email": "sentialx@gmail.com"
@@ -28,7 +29,8 @@
     "lint-fix": "npm run lint -- --fix",
     "watch": "cross-env ENV='dev' webpack",
     "build": "webpack",
-    "prepublishOnly": "npm run build"
+    "publish": "npm run build && node ./scripts/prepublish.js && cd build && npm publish",
+    "link": "npm run build && node ./scripts/prepublish.js && cd build && npm link"
   },
   "pre-commit": [
     "lint-fix"
@@ -50,8 +52,5 @@
     "webpack-cli": "^3.3.9",
     "webpack-merge": "^4.2.2"
   },
-  "dependencies": {},
-  "files": [
-    "build/"
-  ]
+  "dependencies": {}
 }

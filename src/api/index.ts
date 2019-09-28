@@ -1,7 +1,7 @@
 import { ipcRenderer, remote } from 'electron';
-import { Port } from '../../models/port';
-import { IpcExtension } from '../../models/ipc-extension';
-import { IpcEvent } from './events/ipc-event';
+import { Port } from '../models/port';
+import { IpcExtension } from '../models/ipc-extension';
+import { IpcEvent } from '../models/ipc-event';
 import { getStorage } from './storage';
 import { getTabs } from './tabs';
 import { getRuntime } from './runtime';

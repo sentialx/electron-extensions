@@ -2,10 +2,10 @@ import { remote, ipcRenderer } from 'electron';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { IpcEvent } from './events/ipc-event';
-import { makeId } from '../../utils/string';
-import { IpcExtension } from '../../models/ipc-extension';
-import { getSender } from '../../utils/sender';
+import { IpcEvent } from '../models/ipc-event';
+import { makeId } from '../utils/string';
+import { IpcExtension } from '../models/ipc-extension';
+import { getSender } from '../utils/sender';
 
 export const getTabs = (
   extension: IpcExtension,
@@ -36,31 +36,28 @@ export const getTabs = (
     ) => {
       ipcRenderer.send(`api-tabs-query-${sessionId}`);
 
-      ipcRenderer.once(
-        'api-tabs-query',
-        (e, data: chrome.tabs.Tab[]) => {
-          const readProperty = (obj: any, prop: string) => obj[prop];
+      ipcRenderer.once('api-tabs-query', (e, data: chrome.tabs.Tab[]) => {
+        const readProperty = (obj: any, prop: string) => obj[prop];
 
-          callback(
-            data.filter(tab => {
-              for (const key in queryInfo) {
-                const tabProp = readProperty(tab, key);
-                const queryInfoProp = readProperty(queryInfo, key);
+        callback(
+          data.filter(tab => {
+            for (const key in queryInfo) {
+              const tabProp = readProperty(tab, key);
+              const queryInfoProp = readProperty(queryInfo, key);
 
-                if (key === 'url' && queryInfoProp === '<all_urls>') {
-                  return true;
-                }
-
-                if (tabProp == null || queryInfoProp !== tabProp) {
-                  return false;
-                }
+              if (key === 'url' && queryInfoProp === '<all_urls>') {
+                return true;
               }
 
-              return true;
-            }),
-          );
-        },
-      );
+              if (tabProp == null || queryInfoProp !== tabProp) {
+                return false;
+              }
+            }
+
+            return true;
+          }),
+        );
+      });
     },
 
     create: (
@@ -163,27 +160,21 @@ export const getTabs = (
     getZoom: (tabId: number, callback: (zoomFactor: number) => void) => {
       ipcRenderer.send(`api-tabs-getZoom-${sessionId}`, tabId);
 
-      ipcRenderer.once(
-        'api-tabs-getZoom',
-        (e, zoomFactor: number) => {
-          if (callback) {
-            callback(zoomFactor);
-          }
-        },
-      );
+      ipcRenderer.once('api-tabs-getZoom', (e, zoomFactor: number) => {
+        if (callback) {
+          callback(zoomFactor);
+        }
+      });
     },
 
     detectLanguage: (tabId: number, callback: (language: string) => void) => {
       ipcRenderer.send(`api-tabs-detectLanguage-${sessionId}`, tabId);
 
-      ipcRenderer.once(
-        'api-tabs-detectLanguage',
-        (e, language: string) => {
-          if (callback) {
-            callback(language);
-          }
-        },
-      );
+      ipcRenderer.once('api-tabs-detectLanguage', (e, language: string) => {
+        if (callback) {
+          callback(language);
+        }
+      });
     },
 
     sendMessage: (...args: any[]) => {

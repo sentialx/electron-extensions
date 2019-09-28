@@ -14,7 +14,7 @@ const config = {
 
   output: {
     path: resolve(__dirname, 'build'),
-    filename: '[name].bundle.js',
+    filename: '[name].js',
     libraryTarget: 'commonjs2',
   },
 
@@ -57,7 +57,19 @@ const mainConfig = getConfig({
   watch: dev,
 
   entry: {
-    index: './src',
+    main: './src/main',
+  },
+
+  plugins: [],
+});
+
+const rendererConfig = getConfig({
+  target: 'electron-main',
+
+  watch: dev,
+
+  entry: {
+    renderer: './src/renderer',
   },
 
   plugins: [],
@@ -69,11 +81,11 @@ const preloadsConfig = getConfig({
   watch: dev,
 
   entry: {
-    'content-preload': './src/renderer/content',
-    'background-preload': './src/renderer/background',
+    'content-preload': './src/content-preload',
+    'background-preload': './src/background-preload',
   },
 
   plugins: [],
 });
 
-module.exports = [mainConfig, preloadsConfig];
+module.exports = [mainConfig, preloadsConfig, rendererConfig];

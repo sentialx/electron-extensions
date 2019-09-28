@@ -1,8 +1,8 @@
 import { ipcRenderer } from 'electron';
 
-import { IpcExtension } from '../../models/ipc-extension';
-import { IpcEvent } from './events/ipc-event';
-import { makeId } from '../../utils/string';
+import { IpcExtension } from '../models/ipc-extension';
+import { IpcEvent } from '../models/ipc-event';
+import { makeId } from '../utils/string';
 
 export const getBrowserAction = (
   extension: IpcExtension,

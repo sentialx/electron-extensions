@@ -5,11 +5,15 @@ import { join } from 'path';
 import { IpcExtension } from '../models/ipc-extension';
 import { injectContentScript } from './inject';
 
+declare const global: any;
+
 const sessionId: number = ipcRenderer.sendSync('get-session-id');
 
 const arg = process.argv.find(x => x.startsWith('--blacklist='));
 
 let blackList: string[] = [];
+
+global.isBackground = false;
 
 if (arg) {
   try {

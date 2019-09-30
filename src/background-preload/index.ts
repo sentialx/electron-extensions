@@ -7,6 +7,8 @@ import { IpcExtension } from '../models/ipc-extension';
 declare const window: any;
 declare const global: any;
 
+global.isBackground = true;
+
 // https://github.com/electron/electron/issues/11290#issuecomment-362301961
 Object.defineProperty(window.navigator, 'userAgent', {
   value: window.navigator.userAgent.replace(/Electron\/\S*\s/, ''),

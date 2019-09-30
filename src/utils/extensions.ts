@@ -159,15 +159,15 @@ export const loadDevToolsExtensions = (
   const extensionInfoArray = manifests.map(manifestToExtensionInfo);
   extensionInfoArray.forEach(extension => {
     if (!extension.startPage) return;
-    console.log(extension.startPage);
     (webContents.devToolsWebContents as any)._grantOriginAccess(
       extension.startPage,
     );
   });
 
-  webContents.devToolsWebContents.executeJavaScript(
+  // TODO:
+  /*webContents.devToolsWebContents.executeJavaScript(
     `InspectorFrontendAPI.addExtensions(${JSON.stringify(extensionInfoArray)})`,
-  );
+  );*/
 };
 
 export const extensionsToManifests = (extensions: {

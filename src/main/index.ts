@@ -101,13 +101,13 @@ export class ExtensibleSession {
 
       hookWebContentsEvents(this, webContents);
 
-      webContents.on('devtools-opened', () => {
+      /*webContents.on('devtools-opened', () => {
         loadDevToolsExtensions(
           webContents,
           extensionsToManifests(this.extensions),
           this.options.contentPreloadPath,
         );
-      });
+      });*/
     });
   }
 

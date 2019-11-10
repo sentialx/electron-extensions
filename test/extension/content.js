@@ -35,4 +35,4 @@ setTimeout(() => {
   for (const test of tests) {
     console.log(`${test.msg}: ${test.status}`);
   }
-}, 2000);
+}, 1000);

@@ -96,7 +96,7 @@ export const injectContentScript = (
       );
 
       if (script.runAt === 'document_start') {
-        fire();
+        setTimeout(fire);
       } else if (script.runAt === 'document_end') {
         (process as any).once('document-end', fire);
       } else {

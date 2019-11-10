@@ -10,17 +10,17 @@ async function createWindow() {
     height: 600,
   });
 
-  mainWindow.loadFile('index.html');
-  mainWindow.on('closed', function() {
-    mainWindow = null;
-  });
-  mainWindow.openDevTools();
-
   const extensions = new ExtensibleSession(session.defaultSession);
   const extension = await extensions.loadExtension(
     resolve(app.getAppPath(), './extension'),
   );
   extension.backgroundPage.webContents.openDevTools();
+
+  mainWindow.loadFile('index.html');
+  mainWindow.on('closed', function() {
+    mainWindow = null;
+  });
+  mainWindow.openDevTools();
 }
 
 app.on('ready', createWindow);

@@ -52,22 +52,18 @@ ipcMain.on('get-session-id', e => {
   }
 
   /*const wc = webContents
-      .getAllWebContents()
-      .find(
-        x =>
-          x.devToolsWebContents &&
-          x.devToolsWebContents.getType() === e.sender.getType(),
-      );
+    .getAllWebContents()
+    .find(
+      x => x.devToolsWebContents && x.devToolsWebContents.id === e.sender.id,
+    );
 
-    console.log(wc);
-
-    if (wc) {
-      const s = sessions.find(x => x.session === wc.session);
-      if (s) {
-        e.returnValue = s.id;
-        return;
-      }
-    }*/
+  if (wc) {
+    const s = sessions.find(x => x.session === wc.session);
+    if (s) {
+      e.returnValue = s.id;
+      return;
+    }
+  }*/
 
   e.returnValue = -1;
 });
@@ -109,6 +105,7 @@ export class ExtensibleSession {
         loadDevToolsExtensions(
           webContents,
           extensionsToManifests(this.extensions),
+          this.options.contentPreloadPath,
         );
       });
     });

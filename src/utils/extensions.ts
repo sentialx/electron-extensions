@@ -153,6 +153,7 @@ export const loadExtension = async (
 export const loadDevToolsExtensions = (
   webContents: WebContents,
   manifests: chrome.runtime.Manifest[],
+  preloadPath: string,
 ) => {
   if (!webContents.devToolsWebContents) return;
 
@@ -164,7 +165,6 @@ export const loadDevToolsExtensions = (
     );
   });
 
-  // TODO:
   /*webContents.devToolsWebContents.executeJavaScript(
     `InspectorFrontendAPI.addExtensions(${JSON.stringify(extensionInfoArray)})`,
   );*/

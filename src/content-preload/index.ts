@@ -28,7 +28,8 @@ if (sessionId !== -1) {
     `get-extensions-${sessionId}`,
   );
 
-  webFrame.executeJavaScript('window', false, w => {
+  (async function() {
+    const w: any = await webFrame.executeJavaScript('window');
     w.chrome = {
       webstorePrivate: {
         install: () => {},
@@ -42,7 +43,7 @@ if (sessionId !== -1) {
         installState: () => {},
       },
     };
-  });
+  })();
 
   const setImmediateTemp: any = setImmediate;
 

@@ -7,32 +7,24 @@ import { IpcExtension } from '../models/ipc-extension';
 import { getAPI } from '../api';
 import { getIsolatedWorldId } from '../utils/isolated-worlds';
 
-export const injectChromeApi = (
+export const injectChromeApi = async (
   extension: IpcExtension,
   worldId: number,
   sessionId: number,
 ) => {
-  return new Promise(resolve => {
-    const context = getAPI(extension, sessionId);
+  const context = getAPI(extension, sessionId);
 
-    webFrame.setIsolatedWorldInfo(worldId, {
-      name,
-    });
-
-    webFrame.executeJavaScriptInIsolatedWorld(
-      worldId,
-      [
-        {
-          code: 'window',
-        },
-      ],
-      false,
-      (window: any) => {
-        window.chrome = window.browser = context;
-        resolve();
-      },
-    );
+  webFrame.setIsolatedWorldInfo(worldId, {
+    name,
   });
+
+  const w: any = await webFrame.executeJavaScriptInIsolatedWorld(worldId, [
+    {
+      code: 'window',
+    },
+  ]);
+
+  w.chrome = w.browser = context;
 };
 
 const runContentScript = async (
@@ -44,8 +36,7 @@ const runContentScript = async (
 ) => {
   const parsed = parse(url);
   await injectChromeApi(extension, worldId, sessionId);
-
-  webFrame.executeJavaScriptInIsolatedWorld(worldId, [
+  await webFrame.executeJavaScriptInIsolatedWorld(worldId, [
     {
       code,
       url: format({

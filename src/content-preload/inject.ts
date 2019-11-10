@@ -36,7 +36,7 @@ const runContentScript = async (
 ) => {
   const parsed = parse(url);
   await injectChromeApi(extension, worldId, sessionId);
-  await webFrame.executeJavaScriptInIsolatedWorld(worldId, [
+  webFrame.executeJavaScriptInIsolatedWorld(worldId, [
     {
       code,
       url: format({

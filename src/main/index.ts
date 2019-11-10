@@ -12,17 +12,8 @@ import { promises, existsSync } from 'fs';
 import { registerProtocols } from './services/protocols';
 import { runWebRequestService } from './services/web-request';
 import { runMessagingService } from './services/messaging';
-import {
-  loadDevToolsExtensions,
-  loadExtension,
-  extensionsToManifests,
-  getIpcExtension,
-} from '../utils/extensions';
-import {
-  getAllWebContentsInSession,
-  webContentsValid,
-  webContentsToTab,
-} from '../utils/web-contents';
+import { loadExtension, getIpcExtension } from '../utils/extensions';
+import { webContentsValid, webContentsToTab } from '../utils/web-contents';
 import { hookWebContentsEvents } from './services/web-navigation';
 import { IpcExtension } from '../models/ipc-extension';
 import { IStorage } from '../models/storage';

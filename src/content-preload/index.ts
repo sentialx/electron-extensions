@@ -1,5 +1,5 @@
 import { ipcRenderer, webFrame } from 'electron';
-import { readFileSync } from 'fs';
+import { promises } from 'fs';
 import { join } from 'path';
 
 import { IpcExtension } from '../models/ipc-extension';
@@ -57,17 +57,24 @@ if (sessionId !== -1) {
       const { manifest } = extension;
 
       if (manifest.content_scripts) {
-        const readArrayOfFiles = (relativePath: string) => ({
+        const readArrayOfFiles = async (relativePath: string) => ({
           url: `electron-extension://${extension.id}/${relativePath}`,
-          code: readFileSync(join(extension.path, relativePath), 'utf8'),
+          code: await promises.readFile(
+            join(extension.path, relativePath),
+            'utf8',
+          ),
         });
 
         try {
-          manifest.content_scripts.forEach(script => {
+          manifest.content_scripts.forEach(async script => {
             const newScript = {
               matches: script.matches,
-              js: script.js ? script.js.map(readArrayOfFiles) : [],
-              css: script.css ? script.css.map(readArrayOfFiles) : [],
+              js: script.js
+                ? await Promise.all(script.js.map(await readArrayOfFiles))
+                : [],
+              css: script.css
+                ? await Promise.all(script.css.map(await readArrayOfFiles))
+                : [],
               runAt: script.run_at || 'document_idle',
             };
 

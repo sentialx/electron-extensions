@@ -1,5 +1,5 @@
 import { remote, ipcRenderer } from 'electron';
-import { readFileSync } from 'fs';
+import { promises } from 'fs';
 import { join } from 'path';
 
 import { IpcEvent } from '../models/ipc-event';
@@ -83,9 +83,9 @@ export const getTabs = (
     },
 
     insertCSS: (...args: any[]) => {
-      const insertCSS = (tabId: number, details: any, callback: any) => {
+      const insertCSS = async (tabId: number, details: any, callback: any) => {
         if (details.hasOwnProperty('file')) {
-          details.code = readFileSync(
+          details.code = await promises.readFile(
             join(extension.path, details.file),
             'utf8',
           );
@@ -110,9 +110,13 @@ export const getTabs = (
     },
 
     executeScript: (...args: any[]) => {
-      const executeScript = (tabId: number, details: any, callback: any) => {
+      const executeScript = async (
+        tabId: number,
+        details: any,
+        callback: any,
+      ) => {
         if (details.hasOwnProperty('file')) {
-          details.code = readFileSync(
+          details.code = await promises.readFile(
             join(extension.path, details.file),
             'utf8',
           );

@@ -36,6 +36,7 @@ const runContentScript = async (
 ) => {
   const parsed = parse(url);
   await injectChromeApi(extension, worldId, sessionId);
+
   webFrame.executeJavaScriptInIsolatedWorld(worldId, [
     {
       code,
@@ -95,7 +96,7 @@ export const injectContentScript = (
       );
 
       if (script.runAt === 'document_start') {
-        (process as any).once('document-start', fire);
+        fire();
       } else if (script.runAt === 'document_end') {
         (process as any).once('document-end', fire);
       } else {

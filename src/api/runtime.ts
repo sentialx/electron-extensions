@@ -18,26 +18,40 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
     const sender = getSenderContent(extension.id);
     const portId = makeId(32);
 
-    let extensionId = args[0];
-    let message = args[1];
-    let options = args[2];
-    let responseCallback = args[3];
+    let extensionId = extension.id;
+    let message = args[0];
+    let options = args[1];
+    let responseCallback = args[2];
 
-    if (typeof args[0] === 'object') {
-      message = args[0];
-      extensionId = extension.id;
-    }
-
-    if (typeof args[1] === 'object') {
-      options = args[1];
-    }
-
-    if (typeof args[1] === 'function') {
+    if (
+      typeof args[0] === 'string' &&
+      typeof args[2] === 'object' &&
+      typeof args[3] === 'function'
+    ) {
+      extensionId = args[0];
+      message = args[1];
+      options = args[2];
+      responseCallback = args[3];
+    } else if (typeof args[0] === 'string' && typeof args[2] === 'object') {
+      extensionId = args[0];
+      message = args[1];
+      options = args[2];
+      responseCallback = undefined;
+    } else if (
+      args.length === 2 &&
+      typeof args[0] === 'string' &&
+      typeof args[1] !== 'function'
+    ) {
+      extensionId = args[0];
+      message = args[1];
+      options = undefined;
+      responseCallback = undefined;
+    } else if (args.length === 1) {
+      options = undefined;
+      responseCallback = undefined;
+    } else if (args.length === 2 && typeof args[1] === 'function') {
       responseCallback = args[1];
-    }
-
-    if (typeof args[2] === 'function') {
-      responseCallback = args[2];
+      options = undefined;
     }
 
     if (options && options.includeTlsChannelId) {

@@ -30,7 +30,8 @@
     "watch": "cross-env ENV='dev' webpack",
     "build": "webpack",
     "pub": "rimraf build && npm run build && ncp package.json build/package.json && cd build && npm publish",
-    "lnk": "npm run build && ncp package.json build/package.json && cd build && npm link"
+    "lnk": "npm run build && ncp package.json build/package.json && cd build && npm link",
+    "test": "electron test/main.js"
   },
   "pre-commit": [
     "lint-fix"

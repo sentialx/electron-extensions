@@ -76,14 +76,13 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     },
   );
 
-  ipcMain.on(`api-tabs-executeScript-${ses.id}`, (e, data: any) => {
+  ipcMain.on(`api-tabs-executeScript-${ses.id}`, async (e, data: any) => {
     const { tabId, code } = data;
     const contents = webContents.fromId(tabId);
 
     if (contents) {
-      contents.executeJavaScript(data.details.code, false, (result: any) => {
-        e.sender.send(`api-tabs-executeScript-${data.responseId}`, result);
-      });
+      const result: any = await contents.executeJavaScript(data.details.code);
+      e.sender.send(`api-tabs-executeScript-${data.responseId}`, result);
     }
   });
 

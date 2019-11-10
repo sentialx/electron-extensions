@@ -153,7 +153,6 @@ export const loadExtension = async (
 export const loadDevToolsExtensions = (
   webContents: WebContents,
   manifests: chrome.runtime.Manifest[],
-  preloadPath: string,
 ) => {
   if (!webContents.devToolsWebContents) return;
 

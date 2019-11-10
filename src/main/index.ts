@@ -153,12 +153,12 @@ export class ExtensibleSession {
     );
     this.extensions[id] = extension;
 
-    const webContents = getAllWebContentsInSession(this.session);
+    /*const webContents = getAllWebContentsInSession(this.session);
 
     for (const contents of webContents) {
       if (!webContentsValid(contents)) continue;
       loadDevToolsExtensions(contents, extensionsToManifests(this.extensions));
-    }
+    }*/
 
     return extension;
   }

@@ -60,6 +60,7 @@ export const startBackgroundPage = async (
       partition: `persist:electron-extension-${sessionId}`,
       isBackgroundPage: true,
       preload: preloadPath,
+      type: 'backgroundPage',
       commandLineSwitches: ['--background-page'],
       webPreferences: {
         nodeIntegration: true,

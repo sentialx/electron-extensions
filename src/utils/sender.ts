@@ -1,9 +1,7 @@
-import { remote } from 'electron';
-
-import { webContentsToTab } from './web-contents';
+import { ipcRenderer } from 'electron';
 
 export const getSenderTab = () =>
-  webContentsToTab(remote.getCurrentWebContents());
+  ipcRenderer.sendSync('current-webcontents-to-tab');
 
 export const getSenderContent = (id: string): chrome.runtime.MessageSender => ({
   id,

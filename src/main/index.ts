@@ -71,6 +71,10 @@ ipcMain.on('get-webcontents-id', e => {
   e.returnValue = e.sender.id;
 });
 
+ipcMain.on('current-webcontents-to-tab', e => {
+  e.returnValue = webContentsToTab(e.sender);
+});
+
 export interface IOptions {
   contentPreloadPath?: string;
   backgroundPreloadPath?: string;

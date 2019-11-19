@@ -85,7 +85,7 @@ export const injectContentScript = (
       );
 
       if (script.runAt === 'document_start') {
-        (process as any).once('document-start', fire);
+        fire();
       } else if (script.runAt === 'document_end') {
         (process as any).once('document-end', fire);
       } else {
@@ -98,7 +98,7 @@ export const injectContentScript = (
     script.css.forEach((css: any) => {
       const fire = runStylesheet.bind(window, css.code);
       if (script.runAt === 'document_start') {
-        (process as any).once('document-start', fire);
+        fire();
       } else if (script.runAt === 'document_end') {
         (process as any).once('document-end', fire);
       } else {

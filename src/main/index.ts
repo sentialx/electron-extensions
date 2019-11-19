@@ -67,6 +67,10 @@ ipcMain.on('send-msg-webcontents', (e, webContentsId, channel, ...message) => {
   webContents.fromId(webContentsId).send(channel, ...message);
 });
 
+ipcMain.on('get-webcontents-id', e => {
+  e.returnValue = e.sender.id;
+});
+
 export interface IOptions {
   contentPreloadPath?: string;
   backgroundPreloadPath?: string;

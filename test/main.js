@@ -8,6 +8,9 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    webPreferences: {
+      sandbox: true,
+    },
   });
 
   const extensions = new ExtensibleSession(session.defaultSession);

@@ -22,10 +22,6 @@ if (arg) {
 }
 
 if (sessionId !== -1) {
-  const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
-    `get-extensions-${sessionId}`,
-  );
-
   (async function() {
     const w: any = await webFrame.executeJavaScript('window');
     w.chrome = {
@@ -44,6 +40,10 @@ if (sessionId !== -1) {
   })();
 
   const setImmediateTemp: any = setImmediate;
+
+  const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
+    `get-extensions-${sessionId}`,
+  );
 
   process.once('loaded', () => {
     global.setImmediate = setImmediateTemp;

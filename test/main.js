@@ -10,6 +10,9 @@ async function createWindow() {
     height: 600,
     webPreferences: {
       sandbox: true,
+      enableRemoteModule: false,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 

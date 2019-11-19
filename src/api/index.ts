@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { Port } from '../models/port';
 import { IpcExtension } from '../models/ipc-extension';
 import { IpcEvent } from '../models/ipc-event';
@@ -58,9 +58,12 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
       const { portId, sender, message } = data;
 
       const sendResponse = (msg: any) => {
-        remote.webContents
-          .fromId(webContentsId)
-          .send(`api-runtime-sendMessage-response-${portId}`, msg);
+        ipcRenderer.send(
+          'send-msg-webcontents',
+          webContentsId,
+          `api-runtime-sendMessage-response-${portId}`,
+          msg,
+        );
       };
 
       api.runtime.onMessage.emit(message, sender, sendResponse);
@@ -73,9 +76,12 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
       const { portId, sender, message } = data;
 
       const sendResponse = (msg: any) => {
-        remote.webContents
-          .fromId(webContentsId)
-          .send(`api-tabs-sendMessage-response-${portId}`, msg);
+        ipcRenderer.send(
+          'send-msg-webcontents',
+          webContentsId,
+          `api-tabs-sendMessage-response-${portId}`,
+          msg,
+        );
       };
 
       api.runtime.onMessage.emit(message, sender, sendResponse);

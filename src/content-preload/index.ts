@@ -1,6 +1,4 @@
 import { ipcRenderer, webFrame } from 'electron';
-import { promises, readFileSync } from 'fs';
-import { join } from 'path';
 
 import { IpcExtension } from '../models/ipc-extension';
 import { injectContentScript } from './inject';
@@ -54,29 +52,10 @@ if (sessionId !== -1) {
 
     Object.keys(extensions).forEach(key => {
       const extension = extensions[key];
-      const { manifest } = extension;
 
-      if (manifest.content_scripts) {
-        const readArrayOfFiles = (relativePath: string) => ({
-          url: `electron-extension://${extension.id}/${relativePath}`,
-          code: readFileSync(join(extension.path, relativePath), 'utf8'),
-        });
-
-        try {
-          manifest.content_scripts.forEach(script => {
-            const newScript = {
-              matches: script.matches,
-              js: script.js ? script.js.map(readArrayOfFiles) : [],
-              css: script.css ? script.css.map(readArrayOfFiles) : [],
-              runAt: script.run_at || 'document_idle',
-            };
-
-            injectContentScript(newScript, extension, sessionId);
-          });
-        } catch (readError) {
-          console.error('Failed to read content scripts', readError);
-        }
-      }
+      extension.contentScripts.forEach(script => {
+        injectContentScript(script, extension, sessionId);
+      });
     });
   });
 }

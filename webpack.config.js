@@ -86,6 +86,10 @@ const preloadsConfig = getConfig({
   },
 
   plugins: [],
+
+  output: {
+    libraryTarget: 'var',
+  },
 });
 
 module.exports = [mainConfig, preloadsConfig, rendererConfig];

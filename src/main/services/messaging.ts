@@ -7,6 +7,8 @@ import {
   webContentsValid,
 } from '../../utils/web-contents';
 import { makeId } from '../../utils/string';
+import { promises } from 'fs';
+import { join } from 'path';
 
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e, id: string) => {
@@ -14,6 +16,17 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   });
 
   ipcMain.on(`get-extensions-${ses.id}`, e => {
+    const list = { ...ses.extensions };
+
+    for (const key in list) {
+      list[key] = getIpcExtension(list[key]);
+      delete list[key].manifest.contentScripts;
+    }
+
+    e.returnValue = list;
+  });
+
+  ipcMain.on(`get-extensions-content-${ses.id}`, e => {
     const list = { ...ses.extensions };
 
     for (const key in list) {
@@ -64,25 +77,42 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     },
   );
 
-  ipcMain.on(
+  ipcMain.handle(
     `api-tabs-insertCSS-${ses.id}`,
-    (e, tabId: number, details: chrome.tabs.InjectDetails) => {
+    async (
+      e,
+      tabId: number,
+      details: chrome.tabs.InjectDetails,
+      basePath: string,
+    ) => {
       const contents = webContents.fromId(tabId);
 
       if (contents) {
+        if (details.hasOwnProperty('file')) {
+          details.code = await promises.readFile(
+            join(basePath, details.file),
+            'utf8',
+          );
+        }
+
         contents.insertCSS(details.code);
-        e.sender.send('api-tabs-insertCSS');
       }
     },
   );
 
-  ipcMain.on(`api-tabs-executeScript-${ses.id}`, async (e, data: any) => {
-    const { tabId, code } = data;
+  ipcMain.handle(`api-tabs-executeScript-${ses.id}`, async (e, data: any) => {
+    const { tabId, details, basePath } = data;
     const contents = webContents.fromId(tabId);
 
     if (contents) {
-      const result: any = await contents.executeJavaScript(data.details.code);
-      e.sender.send(`api-tabs-executeScript-${data.responseId}`, result);
+      if (details.hasOwnProperty('file')) {
+        details.code = await promises.readFile(
+          join(basePath, details.file),
+          'utf8',
+        );
+      }
+
+      return await contents.executeJavaScript(details.code);
     }
   });
 

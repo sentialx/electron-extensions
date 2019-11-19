@@ -1,4 +1,3 @@
-import { runInThisContext } from 'vm';
 import { format, parse } from 'url';
 import { webFrame } from 'electron';
 
@@ -50,20 +49,10 @@ const runContentScript = async (
   ]);
 };
 
-const runStylesheet = (url: string, code: string) => {
-  const wrapper = `((code) => {
-    const styleElement = document.createElement('style');
-    styleElement.textContent = code;
-    document.head.append(styleElement);
-  })`;
-
-  const compiledWrapper = runInThisContext(wrapper, {
-    filename: url,
-    lineOffset: 1,
-    displayErrors: true,
-  });
-
-  return compiledWrapper.call(window, code);
+const runStylesheet = (code: string) => {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = code;
+  document.body.appendChild(styleElement);
 };
 
 export const injectContentScript = (
@@ -107,7 +96,7 @@ export const injectContentScript = (
 
   if (script.css) {
     script.css.forEach((css: any) => {
-      const fire = runStylesheet.bind(window, css.url, css.code);
+      const fire = runStylesheet.bind(window, css.code);
       if (script.runAt === 'document_start') {
         (process as any).once('document-start', fire);
       } else if (script.runAt === 'document_end') {

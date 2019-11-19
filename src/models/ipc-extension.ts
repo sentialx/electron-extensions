@@ -1,4 +1,5 @@
 import { BackgroundPage } from './background-page';
+import { IContentScript } from './content-scripts';
 
 export interface IpcExtension {
   id?: string;
@@ -7,4 +8,5 @@ export interface IpcExtension {
   locale?: any;
   alarms?: any[];
   backgroundPage?: BackgroundPage;
+  contentScripts?: IContentScript[];
 }

@@ -1,6 +1,4 @@
-import { remote, ipcRenderer } from 'electron';
-import { promises } from 'fs';
-import { join } from 'path';
+import { ipcRenderer } from 'electron';
 
 import { IpcEvent } from '../models/ipc-event';
 import { makeId } from '../utils/string';
@@ -25,7 +23,7 @@ export const getTabs = (
     },
 
     getCurrent: (callback: (tab: chrome.tabs.Tab) => void) => {
-      tabs.get(remote.getCurrentWebContents().id, tab => {
+      tabs.get(ipcRenderer.sendSync('get-webcontents-id'), tab => {
         callback(tab);
       });
     },
@@ -84,20 +82,13 @@ export const getTabs = (
 
     insertCSS: (...args: any[]) => {
       const insertCSS = async (tabId: number, details: any, callback: any) => {
-        if (details.hasOwnProperty('file')) {
-          details.code = await promises.readFile(
-            join(extension.path, details.file),
-            'utf8',
-          );
-        }
-
-        ipcRenderer.send(`api-tabs-insertCSS-${sessionId}`, tabId, details);
-
-        ipcRenderer.once('api-tabs-insertCSS', () => {
-          if (callback) {
-            callback();
-          }
-        });
+        await ipcRenderer.invoke(
+          `api-tabs-insertCSS-${sessionId}`,
+          tabId,
+          details,
+          extension.path,
+        );
+        if (callback) callback();
       };
 
       if (typeof args[0] === 'object') {
@@ -115,29 +106,18 @@ export const getTabs = (
         details: any,
         callback: any,
       ) => {
-        if (details.hasOwnProperty('file')) {
-          details.code = await promises.readFile(
-            join(extension.path, details.file),
-            'utf8',
-          );
-        }
-
-        const responseId = makeId(32);
-        ipcRenderer.send(`api-tabs-executeScript-${sessionId}`, {
-          tabId,
-          details,
-          responseId,
-          extensionId: extension.path,
-        });
-
-        ipcRenderer.once(
-          `api-tabs-executeScript-${responseId}`,
-          (e, result: any) => {
-            if (callback) {
-              callback(result);
-            }
+        const result = await ipcRenderer.invoke(
+          `api-tabs-executeScript-${sessionId}`,
+          {
+            tabId,
+            details,
+            basePath: extension.path,
           },
         );
+
+        if (callback) {
+          callback(result);
+        }
       };
 
       if (typeof args[0] === 'object') {

@@ -6,7 +6,7 @@ import {
   BrowserWindow,
   webContents,
 } from 'electron';
-import { resolve, basename } from 'path';
+import { resolve, basename, join } from 'path';
 import { promises, existsSync } from 'fs';
 
 import { registerProtocols } from './services/protocols';
@@ -57,6 +57,10 @@ ipcMain.on('get-session-id', e => {
   }*/
 
   e.returnValue = -1;
+});
+
+ipcMain.on('send-msg-webcontents', (e, webContentsId, channel, ...message) => {
+  webContents.fromId(webContentsId).send(channel, ...message);
 });
 
 export interface IOptions {
@@ -142,6 +146,33 @@ export class ExtensibleSession {
       this.id,
       this.options.backgroundPreloadPath,
     );
+
+    if (manifest.content_scripts) {
+      const readArrayOfFiles = async (relativePath: string) => ({
+        url: `electron-extension://${id}/${relativePath}`,
+        code: await promises.readFile(join(dir, relativePath), 'utf8'),
+      });
+
+      try {
+        const contentScripts = await Promise.all(
+          manifest.content_scripts.map(async script => ({
+            matches: script.matches,
+            js: script.js
+              ? await Promise.all(script.js.map(readArrayOfFiles))
+              : [],
+            css: script.css
+              ? await Promise.all(script.css.map(readArrayOfFiles))
+              : [],
+            runAt: script.run_at || 'document_idle',
+          })),
+        );
+
+        extension.contentScripts = contentScripts;
+      } catch (readError) {
+        console.error('Failed to read content scripts', readError);
+      }
+    }
+
     this.extensions[id] = extension;
 
     /*const webContents = getAllWebContentsInSession(this.session);

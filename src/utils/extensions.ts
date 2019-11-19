@@ -1,6 +1,6 @@
 import { WebContents, webContents } from 'electron';
 import { promises, existsSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { format } from 'url';
 import { IpcExtension } from '../models/ipc-extension';
 import { ExtensibleSession, storages } from '../main';
@@ -131,19 +131,43 @@ const loadI18n = async (manifest: chrome.runtime.Manifest) => {
   }
 };
 
-export const loadExtension = async (
-  manifest: chrome.runtime.Manifest,
-  sessionId: number,
-  preloadPath: string,
-) => {
+export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
   const extension: IpcExtension = {
     manifest,
     alarms: [],
     locale: await loadI18n(manifest),
     id: manifest.extensionId,
     path: manifest.srcDirectory,
-    backgroundPage: await startBackgroundPage(manifest, sessionId, preloadPath),
   };
+
+  if (manifest.content_scripts) {
+    const readArrayOfFiles = async (relativePath: string) => ({
+      url: `electron-extension://${manifest.extensionId}/${relativePath}`,
+      code: await promises.readFile(
+        join(manifest.srcDirectory, relativePath),
+        'utf8',
+      ),
+    });
+
+    try {
+      const contentScripts = await Promise.all(
+        manifest.content_scripts.map(async script => ({
+          matches: script.matches,
+          js: script.js
+            ? await Promise.all(script.js.map(readArrayOfFiles))
+            : [],
+          css: script.css
+            ? await Promise.all(script.css.map(readArrayOfFiles))
+            : [],
+          runAt: script.run_at || 'document_idle',
+        })),
+      );
+
+      extension.contentScripts = contentScripts;
+    } catch (readError) {
+      console.error('Failed to read content scripts', readError);
+    }
+  }
 
   if (!storages.get(manifest.extensionId)) {
     storages.set(manifest.extensionId, loadStorages(manifest));

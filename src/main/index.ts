@@ -12,7 +12,11 @@ import { promises, existsSync } from 'fs';
 import { registerProtocols } from './services/protocols';
 import { runWebRequestService } from './services/web-request';
 import { runMessagingService } from './services/messaging';
-import { loadExtension, getIpcExtension } from '../utils/extensions';
+import {
+  loadExtension,
+  getIpcExtension,
+  startBackgroundPage,
+} from '../utils/extensions';
 import { webContentsValid, webContentsToTab } from '../utils/web-contents';
 import { hookWebContentsEvents } from './services/web-navigation';
 import { IpcExtension } from '../models/ipc-extension';
@@ -141,37 +145,13 @@ export class ExtensibleSession {
     manifest.srcDirectory = dir;
     manifest.extensionId = id;
 
-    const extension = await loadExtension(
+    const extension = await loadExtension(manifest);
+
+    extension.backgroundPage = await startBackgroundPage(
       manifest,
       this.id,
       this.options.backgroundPreloadPath,
     );
-
-    if (manifest.content_scripts) {
-      const readArrayOfFiles = async (relativePath: string) => ({
-        url: `electron-extension://${id}/${relativePath}`,
-        code: await promises.readFile(join(dir, relativePath), 'utf8'),
-      });
-
-      try {
-        const contentScripts = await Promise.all(
-          manifest.content_scripts.map(async script => ({
-            matches: script.matches,
-            js: script.js
-              ? await Promise.all(script.js.map(readArrayOfFiles))
-              : [],
-            css: script.css
-              ? await Promise.all(script.css.map(readArrayOfFiles))
-              : [],
-            runAt: script.run_at || 'document_idle',
-          })),
-        );
-
-        extension.contentScripts = contentScripts;
-      } catch (readError) {
-        console.error('Failed to read content scripts', readError);
-      }
-    }
 
     this.extensions[id] = extension;
 

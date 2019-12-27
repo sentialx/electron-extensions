@@ -1,4 +1,4 @@
-import { webContents, ipcMain, BrowserWindow } from 'electron';
+import { webContents, ipcMain, BrowserWindow, session } from 'electron';
 import { getIpcExtension, sendToBackgroundPages } from '../../utils/extensions';
 import { ExtensibleSession, storages } from '..';
 import {
@@ -175,9 +175,19 @@ export const runMessagingService = (ses: ExtensibleSession) => {
           }
         });
       } else {
-        const contents = getAllWebContentsInSession(ses.session);
+        let contents = getAllWebContentsInSession(ses.session);
         for (const content of contents) {
           if (content.id !== e.sender.id) {
+            content.send(`api-port-postMessage-${portId}`, msg, tab);
+          }
+        }
+
+        contents = getAllWebContentsInSession(
+          session.fromPartition(`persist:electron-extension-${ses.id}`),
+        );
+
+        for (const content of contents) {
+          if (content.id !== e.sender.id && webContentsValid(content)) {
             content.send(`api-port-postMessage-${portId}`, msg, tab);
           }
         }

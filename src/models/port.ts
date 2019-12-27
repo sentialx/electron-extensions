@@ -39,12 +39,12 @@ export class Port {
   }
 
   public postMessage(msg: any) {
-    const { isBackground } = global as any;
+    const { isTab } = global as any;
 
     ipcRenderer.send(`api-port-postMessage-${this.sessionId}`, {
       portId: this.portId,
       msg,
-      tab: isBackground ? null : getSenderTab(),
+      tab: isTab ? null : getSenderTab(),
     });
   }
 }

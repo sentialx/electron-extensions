@@ -23,7 +23,7 @@ export const injectChromeApi = async (
     },
   ]);
 
-  w.chrome = w.browser = context;
+  w.chrome = w.browser = w.webext = context;
 };
 
 const runContentScript = async (

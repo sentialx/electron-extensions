@@ -7,7 +7,7 @@ import { IpcExtension } from '../models/ipc-extension';
 declare const window: any;
 declare const global: any;
 
-global.isBackground = true;
+global.isTab = false;
 
 // https://github.com/electron/electron/issues/11290#issuecomment-362301961
 Object.defineProperty(window.navigator, 'userAgent', {
@@ -30,8 +30,8 @@ const extension: IpcExtension = ipcRenderer.sendSync(
 process.once('loaded', () => {
   const api = getAPI(extension, sessionId);
 
-  window.chrome = api;
-  window.browser = api;
+  window.chrome = window.browser = api;
+  window.webext = api;
 
   process.once('loaded', () => {
     delete global.require;

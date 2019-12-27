@@ -11,7 +11,7 @@ const arg = process.argv.find(x => x.startsWith('--blacklist='));
 
 let blackList: string[] = [];
 
-global.isBackground = false;
+global.isTab = true;
 
 if (arg) {
   try {

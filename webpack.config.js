@@ -83,6 +83,7 @@ const preloadsConfig = getConfig({
   entry: {
     'content-preload': './src/content-preload',
     'background-preload': './src/background-preload',
+    'popup-preload': './src/popup-preload',
   },
 
   plugins: [],

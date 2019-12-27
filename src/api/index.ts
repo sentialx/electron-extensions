@@ -42,6 +42,7 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
 
     extension: {
       isIncognitoContext: false,
+      getURL: getRuntime(extension, sessionId).getURL,
     },
   };
 

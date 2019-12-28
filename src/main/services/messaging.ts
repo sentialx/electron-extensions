@@ -200,26 +200,34 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     async (e, { extensionId, id, area, type, arg }: any) => {
       const storage = storages.get(extensionId);
 
-      const contents = webContents.fromId(e.sender.id);
       const msg = `api-storage-operation-${id}`;
 
       if (type === 'get') {
-        const res = await storage[area].get(arg);
+        let res = await storage[area].get(arg);
         for (const key in res) {
           if (Buffer.isBuffer(res[key])) {
             res[key] = JSON.parse(res[key].toString());
           }
         }
-        contents.send(msg, res);
+
+        if (
+          Object.entries(res).length === 0 &&
+          res.constructor === Object &&
+          arg instanceof Object
+        ) {
+          res = { ...arg };
+        }
+
+        e.sender.send(msg, res);
       } else if (type === 'set') {
         await storage[area].set(arg);
-        contents.send(msg);
+        e.sender.send(msg);
       } else if (type === 'clear') {
         await storage[area].clear();
-        contents.send(msg);
+        e.sender.send(msg);
       } else if (type === 'remove') {
         await storage[area].remove(arg);
-        contents.send(msg);
+        e.sender.send(msg);
       }
     },
   );

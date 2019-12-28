@@ -21,6 +21,7 @@ import { webContentsValid, webContentsToTab } from '../utils/web-contents';
 import { hookWebContentsEvents } from './services/web-navigation';
 import { IpcExtension } from '../models/ipc-extension';
 import { IStorage } from '../models/storage';
+import { EventEmitter } from 'events';
 
 let id = 1;
 
@@ -76,7 +77,19 @@ export interface IOptions {
   backgroundPreloadPath?: string;
 }
 
-export class ExtensibleSession {
+export declare interface ExtensibleSession {
+  on(
+    event: 'create-tab',
+    listener: (
+      details: chrome.tabs.CreateProperties,
+      callback: (tabId: number) => void,
+    ) => void,
+  ): this;
+
+  on(event: string, listener: Function): this;
+}
+
+export class ExtensibleSession extends EventEmitter {
   public extensions: { [key: string]: IpcExtension } = {};
 
   public id = id++;
@@ -96,6 +109,8 @@ export class ExtensibleSession {
   };
 
   constructor(public session: Session, options: IOptions = {}) {
+    super();
+
     registerProtocols(this);
 
     this.options = { ...this.options, ...options };

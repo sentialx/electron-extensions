@@ -54,29 +54,35 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       data: chrome.tabs.CreateProperties,
       windowId: number,
     ) => {
-      const newId = makeId(32);
       const type = e.sender.getType();
 
+      let realWindowId = -1;
+      let bw: BrowserWindow;
+
       if (data.windowId) {
-        const wc = ses.webContents.find(x => x.id === data.windowId);
-        wc.send('api-tabs-create', newId, data);
+        realWindowId = data.windowId;
       } else if (type === 'backgroundPage') {
-        ses.lastActiveWebContents.send('api-tabs-create', newId, data);
+        bw = BrowserWindow.fromWebContents(ses.lastActiveWebContents);
       } else if (type === 'browserView') {
-        const bw = BrowserWindow.fromId(windowId);
-        if (bw) {
-          bw.webContents.send('api-tabs-create', newId, data);
-        }
+        bw = BrowserWindow.fromId(windowId);
       } else if (type === 'webview') {
-        e.sender.hostWebContents.send('api-tabs-create', newId, data);
+        bw = BrowserWindow.fromWebContents(e.sender.hostWebContents);
       }
 
-      ipcMain.once(`api-tabs-create-${newId}`, (_: any, tabId: number) => {
+      if (bw) {
+        realWindowId = bw.id;
+      }
+
+      const callback = (tabId: number) => {
         e.sender.send(
           `api-tabs-create-${responseId}`,
           webContentsToTab(webContents.fromId(tabId), ses),
         );
-      });
+      };
+
+      data.windowId = realWindowId;
+
+      ses.emit('create-tab', data, callback);
     },
   );
 

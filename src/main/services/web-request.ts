@@ -4,6 +4,7 @@ import { makeId } from '../../utils/string';
 import { ExtensibleSession } from '..';
 
 const eventListeners: { [key: string]: Function } = {};
+const events: { [key: string]: string } = {};
 
 const getRequestType = (type: string): any => {
   if (type === 'mainFrame') return 'main_frame';
@@ -40,90 +41,102 @@ const objectToArray = (obj: any): any[] => {
 const arrayToObject = (arr: any[]) => {
   const obj: any = {};
   arr.forEach((item: any) => {
-    arr[item.name] = item.value;
+    obj[item.name] = item.value;
   });
   return obj;
 };
 
 const getCallback = (callback: any) => {
   return function cb(data: any) {
-    if (!cb.prototype.callbackCalled) {
-      callback(data);
-      cb.prototype.callbackCalled = true;
-    }
+    callback(data);
   };
 };
 
-const interceptRequest = (
+const invokeIpc = (
+  wc: WebContents,
+  channel: string,
+  ...args: any[]
+): Promise<any> =>
+  new Promise(resolve => {
+    const id = makeId(32);
+
+    ipcMain.once(`${channel}-${id}`, (e: any, ...a: any[]) => resolve(...a));
+
+    wc.send(channel, ...args, id);
+  });
+
+const interceptRequest = async (
   eventName: string,
   details: any,
   contents: WebContents,
   eventId: number,
   callback: any = null,
 ) => {
-  let isIntercepted = false;
-
-  const defaultRes = {
+  const defaultRes: any = {
     cancel: false,
-    requestHeaders: details.requestHeaders,
-    responseHeaders: details.responseHeaders,
   };
+
+  const detailsForApi = { ...details };
+
+  if (details.requestHeaders) {
+    defaultRes.requestHeaders = details.requestHeaders;
+    detailsForApi.requestHeaders = objectToArray(details.requestHeaders);
+  }
+
+  if (details.responseHeaders) {
+    defaultRes.responseHeaders = details.responseHeaders;
+    detailsForApi.responseHeaders = objectToArray(details.responseHeaders);
+  }
 
   const cb = getCallback(callback);
 
-  const id = makeId(32);
-
-  ipcMain.once(
-    `api-webRequest-response-${eventName}-${eventId}-${id}`,
-    (e: any, res: any) => {
-      if (res) {
-        if (res.cancel) {
-          return cb({ cancel: true });
-        }
-
-        if (res.redirectURL) {
-          return cb({
-            cancel: false,
-            redirectURL: res.redirectUrl,
-          });
-        }
-
-        if (
-          res.requestHeaders &&
-          (eventName === 'onBeforeSendHeaders' || eventName === 'onSendHeaders')
-        ) {
-          const requestHeaders = arrayToObject(res.requestHeaders);
-          return cb({ cancel: false, requestHeaders });
-        }
-
-        if (res.responseHeaders) {
-          const responseHeaders = {
-            ...details.responseHeaders,
-            ...arrayToObject(res.responseHeaders),
-          };
-
-          return cb({
-            responseHeaders,
-            cancel: false,
-          });
-        }
-      }
-
-      cb(defaultRes);
-    },
-  );
-
-  contents.send(
+  const res = await invokeIpc(
+    contents,
     `api-webRequest-intercepted-${eventName}-${eventId}`,
-    details,
-    id,
+    detailsForApi,
   );
 
-  isIntercepted = true;
+  if (res) {
+    if (res.cancel === true) {
+      return cb({ cancel: true });
+    }
 
-  if (!isIntercepted && callback) {
-    cb(defaultRes);
+    if (res.redirectURL) {
+      return cb({
+        cancel: false,
+        redirectURL: res.redirectUrl,
+      });
+    }
+
+    if (
+      res.requestHeaders &&
+      (eventName === 'onBeforeSendHeaders' || eventName === 'onSendHeaders')
+    ) {
+      const requestHeaders = {
+        ...details.requestHeaders,
+        ...arrayToObject(res.requestHeaders),
+      };
+
+      return cb({
+        cancel: false,
+        requestHeaders,
+      });
+    }
+
+    if (res.responseHeaders) {
+      const responseHeaders = {
+        ...details.responseHeaders,
+        ...arrayToObject(res.responseHeaders),
+      };
+
+      return cb({
+        responseHeaders,
+        cancel: false,
+      });
+    }
   }
+
+  cb(defaultRes);
 };
 
 export const runWebRequestService = (ses: ExtensibleSession) => {
@@ -135,48 +148,38 @@ export const runWebRequestService = (ses: ExtensibleSession) => {
     const { id, name, filters } = data;
 
     eventListeners[id] = (details: any, callback: any) => {
-      let newDetails = getDetails(details, true);
-      if (name === 'onBeforeSendHeaders') {
-        const requestHeaders = objectToArray(details.requestHeaders);
-
-        newDetails = {
-          ...newDetails,
-          requestHeaders,
-        };
-      } else if (name === 'onHeadersReceived') {
-        const responseHeaders = objectToArray(details.responseHeaders);
-
-        newDetails = {
-          ...newDetails,
-          responseHeaders,
-        };
-      } else if (name === 'onSendHeaders') {
-        const requestHeaders = objectToArray(details.requestHeaders);
-
-        newDetails = {
-          ...newDetails,
-          requestHeaders,
-        };
-      }
-
       interceptRequest(
         name,
-        newDetails,
+        getDetails(details, true),
         webContents.fromId(e.sender.id),
         id,
         callback,
       );
     };
 
+    let res: any;
+
     if (filters) {
-      (webRequest as any)[name](filters, eventListeners[id]);
+      res = (webRequest as any).addListener(name, filters, eventListeners[id]);
     } else {
-      (webRequest as any)[name](eventListeners[id]);
+      res = (webRequest as any).addListener(
+        name,
+        { urls: ['<all_urls>'] },
+        eventListeners[id],
+      );
     }
+
+    events[id] = res.id;
   });
 
   ipcMain.on('api-remove-webRequest-listener', (e: any, data: any) => {
-    const { id } = data;
+    const { id, name } = data;
+
+    if (events[id]) {
+      (webRequest as any).removeListener(name, events[id]);
+      delete events[id];
+    }
+
     if (eventListeners[id]) {
       delete eventListeners[id];
     }

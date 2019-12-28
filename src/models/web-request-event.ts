@@ -19,7 +19,7 @@ export class WebRequestEvent {
         const response = callback(details);
 
         ipcRenderer.send(
-          `api-webRequest-response-${this.name}-${id}-${requestId}`,
+          `api-webRequest-intercepted-${this.name}-${id}-${requestId}`,
           response,
         );
       },

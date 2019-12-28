@@ -52,18 +52,20 @@ export interface IAliasParameters {
 export type IListenerCollection = Map<IListener['id'], IListener>;
 
 const defaultResolver = (listeners: IApplier[]) => {
-  const response = listeners.reverse().reduce(
-    async (accumulator: any, element: any) => {
-      if (accumulator.cancel) {
-        return accumulator;
-      }
+  const response = listeners
+    .sort((a, b) => b.context.order - a.context.order)
+    .reduce(
+      async (accumulator: any, element: any) => {
+        if (accumulator.cancel) {
+          return accumulator;
+        }
 
-      const result = await element.apply();
+        const result = await element.apply();
 
-      return { ...accumulator, ...result };
-    },
-    { cancel: false },
-  );
+        return { ...accumulator, ...result };
+      },
+      { cancel: false },
+    );
 
   return response;
 };
@@ -185,7 +187,10 @@ export class BetterWebRequest {
       const newFilters = this.mergeFilters(listeners);
       this.filters.set(method, newFilters);
 
-      this.webRequest[method]([...newFilters], this.listenerFactory(method));
+      this.webRequest[method](
+        { urls: [...newFilters] },
+        this.listenerFactory(method),
+      );
     }
   }
 

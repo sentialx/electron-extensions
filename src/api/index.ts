@@ -44,6 +44,34 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
       isIncognitoContext: false,
       getURL: getRuntime(extension, sessionId).getURL,
     },
+
+    contextMenus: {
+      onClicked: new IpcEvent('contextMenus', 'onClicked'),
+      create: () => {},
+    },
+
+    windows: {
+      get: () => {},
+      onFocusChanged: new IpcEvent('windows', 'onFocusChanged'),
+    },
+
+    privacy: {
+      network: {
+        networkPredictionEnabled: {
+          set: () => {},
+          clear: () => {},
+        },
+        webRTCMultipleRoutesEnabled: {},
+        webRTCNonProxiedUdpEnabled: {},
+        webRTCIPHandlingPolicy: {},
+      },
+      websites: {
+        hyperlinkAuditingEnabled: {
+          set: () => {},
+          clear: () => {},
+        },
+      },
+    },
   };
 
   ipcRenderer.on('api-runtime-connect', (e, data: any) => {

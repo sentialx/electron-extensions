@@ -38,12 +38,12 @@ const extension: IpcExtension = ipcRenderer.sendSync(
 const updateBounds = () => {
   ipcRenderer.sendToHost(
     'webview-size',
-    document.body.clientWidth,
-    document.body.clientHeight,
+    document.body.offsetWidth,
+    document.body.offsetHeight,
   );
 };
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
   setTimeout(() => {
     updateBounds();
   });

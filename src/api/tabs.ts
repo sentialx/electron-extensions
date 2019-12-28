@@ -28,34 +28,35 @@ export const getTabs = (
       });
     },
 
-    query: (
+    query: async (
       queryInfo: chrome.tabs.QueryInfo,
       callback: (tabs: chrome.tabs.Tab[]) => void,
     ) => {
-      ipcRenderer.send(`api-tabs-query-${sessionId}`);
+      const readProperty = (obj: any, prop: string) => obj[prop];
+      const data: chrome.tabs.Tab[] = await ipcRenderer.invoke(
+        `api-tabs-query-${sessionId}`,
+      );
 
-      ipcRenderer.once('api-tabs-query', (e, data: chrome.tabs.Tab[]) => {
-        const readProperty = (obj: any, prop: string) => obj[prop];
+      console.log(data);
 
-        callback(
-          data.filter(tab => {
-            for (const key in queryInfo) {
-              const tabProp = readProperty(tab, key);
-              const queryInfoProp = readProperty(queryInfo, key);
+      callback(
+        data.filter(tab => {
+          for (const key in queryInfo) {
+            const tabProp = readProperty(tab, key);
+            const queryInfoProp = readProperty(queryInfo, key);
 
-              if (key === 'url' && queryInfoProp === '<all_urls>') {
-                return true;
-              }
-
-              if (tabProp == null || queryInfoProp !== tabProp) {
-                return false;
-              }
+            if (key === 'url' && queryInfoProp === '<all_urls>') {
+              return true;
             }
 
-            return true;
-          }),
-        );
-      });
+            if (tabProp == null || queryInfoProp !== tabProp) {
+              return false;
+            }
+          }
+
+          return true;
+        }),
+      );
     },
 
     create: (

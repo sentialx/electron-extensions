@@ -14,7 +14,7 @@ if (protocol) {
         standard: true,
         supportFetchAPI: true,
         allowServiceWorkers: true,
-        corsEnabled: false,
+        corsEnabled: true,
       },
     },
   ]);

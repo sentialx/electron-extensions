@@ -1,12 +1,16 @@
 import { WebContents, webContents } from 'electron';
+import { ExtensibleSession } from '../main';
 
-export const webContentsToTab = (wc: WebContents): chrome.tabs.Tab => ({
+export const webContentsToTab = (
+  wc: WebContents,
+  ses: ExtensibleSession,
+): chrome.tabs.Tab => ({
   id: wc.id,
   index: wc.id,
   windowId: wc.hostWebContents ? wc.hostWebContents.id : wc.id,
-  highlighted: wc.isFocused(),
-  active: wc.isFocused(),
-  selected: wc.isFocused(),
+  highlighted: wc.id === ses.activeTab,
+  active: wc.id === ses.activeTab,
+  selected: wc.id === ses.activeTab,
   pinned: false,
   discarded: false,
   autoDiscardable: false,

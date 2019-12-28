@@ -44,7 +44,7 @@ export class Port {
     ipcRenderer.send(`api-port-postMessage-${this.sessionId}`, {
       portId: this.portId,
       msg,
-      tab: isTab ? null : getSenderTab(),
+      tab: isTab ? null : getSenderTab(this.sessionId),
     });
   }
 }

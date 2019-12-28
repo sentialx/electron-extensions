@@ -36,11 +36,14 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     e.returnValue = list;
   });
 
-  ipcMain.on(`api-tabs-query-${ses.id}`, e => {
-    const tabs = getAllWebContentsInSession(ses.session).map(x =>
-      webContentsToTab(x),
-    );
-    e.sender.send('api-tabs-query', tabs);
+  ipcMain.handle(`api-tabs-query-${ses.id}`, e => {
+    const tabs = getAllWebContentsInSession(ses.session).map(x => ({
+      ...webContentsToTab(x, ses),
+      lastFocusedWindow: true,
+      currentWindow: true,
+    }));
+
+    return tabs;
   });
 
   ipcMain.on(
@@ -71,11 +74,15 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       ipcMain.once(`api-tabs-create-${newId}`, (_: any, tabId: number) => {
         e.sender.send(
           `api-tabs-create-${responseId}`,
-          webContentsToTab(webContents.fromId(tabId)),
+          webContentsToTab(webContents.fromId(tabId), ses),
         );
       });
     },
   );
+
+  ipcMain.on(`current-webcontents-to-tab-${ses.id}`, e => {
+    e.returnValue = webContentsToTab(e.sender, ses);
+  });
 
   ipcMain.handle(
     `api-tabs-insertCSS-${ses.id}`,

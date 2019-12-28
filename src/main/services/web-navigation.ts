@@ -35,7 +35,7 @@ export const hookWebContentsEvents = (
       'api-emit-event-tabs-onUpdated',
       tabId,
       changeInfo,
-      webContentsToTab(webContents),
+      webContentsToTab(webContents, ses),
     );
   });
 
@@ -47,7 +47,7 @@ export const hookWebContentsEvents = (
       'api-emit-event-tabs-onUpdated',
       tabId,
       changeInfo,
-      webContentsToTab(webContents),
+      webContentsToTab(webContents, ses),
     );
   });
 

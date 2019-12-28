@@ -71,10 +71,6 @@ ipcMain.on('get-webcontents-id', e => {
   e.returnValue = e.sender.id;
 });
 
-ipcMain.on('current-webcontents-to-tab', e => {
-  e.returnValue = webContentsToTab(e.sender);
-});
-
 export interface IOptions {
   contentPreloadPath?: string;
   backgroundPreloadPath?: string;
@@ -87,7 +83,10 @@ export class ExtensibleSession {
 
   public webContents: WebContents[] = [];
 
+  // Last active window
   public lastActiveWebContents: WebContents;
+
+  public activeTab = -1;
 
   private _initialized = false;
 
@@ -104,7 +103,11 @@ export class ExtensibleSession {
     sessions.push(this);
 
     app.on('web-contents-created', (e, webContents) => {
-      if (!webContentsValid(webContents)) return;
+      if (
+        !webContentsValid(webContents) ||
+        webContents.session !== this.session
+      )
+        return;
 
       hookWebContentsEvents(this, webContents);
 
@@ -185,7 +188,7 @@ export class ExtensibleSession {
     ipcMain.on(
       `api-browserAction-onClicked-${window.webContents.id}`,
       (e, extensionId: string, tabId: number) => {
-        const tab = webContentsToTab(webContents.fromId(tabId));
+        const tab = webContentsToTab(webContents.fromId(tabId), this);
         this.extensions[extensionId].backgroundPage.webContents.send(
           'api-emit-event-browserAction-onClicked',
           tab,

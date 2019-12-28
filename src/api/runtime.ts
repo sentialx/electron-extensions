@@ -15,7 +15,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   onInstalled: new LocalEvent(),
 
   sendMessage: (...args: any[]) => {
-    const sender = getSenderContent(extension.id);
+    const sender = getSenderContent(extension.id, sessionId);
     const portId = makeId(32);
 
     let extensionId = extension.id;
@@ -76,7 +76,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   },
 
   connect: (...args: any[]) => {
-    const sender = getSenderContent(extension.id);
+    const sender = getSenderContent(extension.id, sessionId);
     const portId = makeId(32);
 
     let name: string = null;

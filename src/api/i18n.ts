@@ -9,6 +9,7 @@ export const getI18n = (extension: IpcExtension) => ({
   },
   getMessage: (messageName: string, substitutions?: any) => {
     if (messageName === '@@ui_locale') return 'en_US';
+    else if (messageName === '@@extension_id') return extension.id;
 
     const { locale } = extension;
     const substitutionsArray = substitutions instanceof Array;

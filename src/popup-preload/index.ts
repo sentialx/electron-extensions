@@ -44,13 +44,14 @@ const updateBounds = () => {
 };
 
 window.addEventListener('load', () => {
-  setTimeout(() => {
+  updateBounds();
+
+  // @ts-ignore
+  const resizeObserver = new ResizeObserver(() => {
     updateBounds();
   });
 
-  window.addEventListener('resize', () => {
-    updateBounds();
-  });
+  resizeObserver.observe(document.body);
 });
 
 window.addEventListener('blur', () => {

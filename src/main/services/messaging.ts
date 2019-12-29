@@ -62,7 +62,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       if (data.windowId) {
         realWindowId = data.windowId;
       } else if (type === 'backgroundPage') {
-        bw = BrowserWindow.fromWebContents(ses.lastActiveWebContents);
+        bw = ses.lastFocusedWindow;
       } else if (type === 'browserView') {
         bw = BrowserWindow.fromId(windowId);
       } else if (type === 'webview') {

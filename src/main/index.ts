@@ -97,7 +97,7 @@ export class ExtensibleSession extends EventEmitter {
   public webContents: WebContents[] = [];
 
   // Last active window
-  public lastActiveWebContents: WebContents;
+  public lastFocusedWindow: BrowserWindow;
 
   public activeTab = -1;
 
@@ -194,10 +194,10 @@ export class ExtensibleSession extends EventEmitter {
   addWindow(window: BrowserWindow) {
     this.webContents.push(window.webContents);
 
-    if (window.isFocused()) this.lastActiveWebContents = window.webContents;
+    if (window.isFocused()) this.lastFocusedWindow = window;
 
     window.on('focus', () => {
-      this.lastActiveWebContents = window.webContents;
+      this.lastFocusedWindow = window;
     });
 
     ipcMain.on(

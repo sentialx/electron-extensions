@@ -48,7 +48,7 @@ window.addEventListener('load', () => {
     updateBounds();
   });
 
-  document.body.addEventListener('resize', () => {
+  window.addEventListener('resize', () => {
     updateBounds();
   });
 });

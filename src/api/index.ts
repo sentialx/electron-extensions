@@ -9,6 +9,7 @@ import { getI18n } from './i18n';
 import { getBrowserAction } from './browser-action';
 import { getWebRequest } from './web-request';
 import { getWebNavigation } from './web-navigation';
+import { cookies } from './cookies';
 
 const arg = process.argv.find(x => x.startsWith('--window-id='));
 
@@ -27,9 +28,10 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
     browserAction: getBrowserAction(extension, sessionId),
     webRequest: getWebRequest(),
     webNavigation: getWebNavigation(),
+    cookies: cookies(extension, sessionId),
 
     alarms: {
-      onAlarm: new IpcEvent('alarms', 'onAlarm'),
+      onAlarm: new IpcEvent('alarms', 'onAlarm', sessionId),
       create: (
         name: string | chrome.alarms.AlarmCreateInfo,
         alarmInfo: chrome.alarms.AlarmCreateInfo,
@@ -43,17 +45,20 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
     extension: {
       isIncognitoContext: false,
       getURL: getRuntime(extension, sessionId).getURL,
+      isAllowedIncognitoAccess: (cb: any) => {
+        if (cb) cb(false);
+      },
     },
 
     contextMenus: {
-      onClicked: new IpcEvent('contextMenus', 'onClicked'),
+      onClicked: new IpcEvent('contextMenus', 'onClicked', sessionId),
       create: () => {},
       removeAll: () => {},
     },
 
     windows: {
       get: () => {},
-      onFocusChanged: new IpcEvent('windows', 'onFocusChanged'),
+      onFocusChanged: new IpcEvent('windows', 'onFocusChanged', sessionId),
     },
 
     management: {

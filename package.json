@@ -9,7 +9,7 @@
     "api",
     "typescript"
   ],
-  "homepage": "https://github.com/wexond/electron-extensions#readme",
+  "homepage": "https://github.com/sentialx/electron-extensions#readme",
   "exports": {
     "./": "./build/"
   },
@@ -19,10 +19,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wexond/electron-extensions.git"
+    "url": "git+https://github.com/sentialx/electron-extensions.git"
   },
   "bugs": {
-    "url": "https://github.com/wexond/electron-extensions/issues"
+    "url": "https://github.com/sentialx/electron-extensions/issues"
   },
   "scripts": {
     "lint": "eslint \"src/**/*.ts*\"",

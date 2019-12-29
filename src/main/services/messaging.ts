@@ -114,18 +114,22 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   );
 
   ipcMain.handle(`api-tabs-executeScript-${ses.id}`, async (e, data: any) => {
-    const { tabId, details, basePath } = data;
-    const contents = webContents.fromId(tabId);
+    try {
+      const { tabId, details, basePath } = data;
+      const contents = webContents.fromId(tabId);
 
-    if (contents) {
-      if (details.hasOwnProperty('file')) {
-        details.code = await promises.readFile(
-          join(basePath, details.file),
-          'utf8',
-        );
+      if (contents) {
+        if (details.hasOwnProperty('file')) {
+          details.code = await promises.readFile(
+            join(basePath, details.file),
+            'utf8',
+          );
+        }
+
+        return await contents.executeJavaScript(details.code);
       }
-
-      return await contents.executeJavaScript(details.code);
+    } catch (e) {
+      console.error(e);
     }
   });
 
@@ -324,6 +328,57 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       for (const content of contents) {
         content.send(msg, ...args);
       }
+    },
+  );
+
+  const cookiesChangedTargets: Map<number, Electron.WebContents> = new Map();
+
+  ipcMain.on(`api-addListener-${ses.id}`, (e, data) => {
+    if (data.scope === 'cookies' && data.name === 'onChanged') {
+      cookiesChangedTargets.set(data.id, e.sender);
+    }
+  });
+
+  ipcMain.on(`api-removeListener-${ses.id}`, (e, data) => {
+    if (data.scope === 'cookies' && data.name === 'onChanged') {
+      cookiesChangedTargets.delete(data.id);
+    }
+  });
+
+  ipcMain.handle(`api-cookies-getAll-${ses.id}`, async (e, details) => {
+    return await ses.session.cookies.get(details);
+  });
+
+  ipcMain.handle(`api-cookies-remove-${ses.id}`, async (e, details) => {
+    const cookie = (await ses.session.cookies.get(details))[0];
+
+    if (!cookie) {
+      return null;
+    }
+
+    await ses.session.cookies.remove(details.url, details.name);
+
+    return cookie;
+  });
+
+  ipcMain.handle(`api-cookies-set-${ses.id}`, async (e, details) => {
+    await ses.session.cookies.set(details);
+
+    const cookie = (await ses.session.cookies.get(details))[0];
+
+    if (!cookie) {
+      return null;
+    }
+
+    return cookie;
+  });
+
+  ses.session.cookies.on(
+    'changed',
+    (e: any, cookie: Electron.Cookie, cause: string) => {
+      cookiesChangedTargets.forEach(value => {
+        value.send(`api-emit-event-cookies-onChanged`, cookie, cause);
+      });
     },
   );
 };

@@ -8,7 +8,7 @@ export const getBrowserAction = (
   extension: IpcExtension,
   sessionId: number,
 ) => ({
-  onClicked: new IpcEvent('browserAction', 'onClicked'),
+  onClicked: new IpcEvent('browserAction', 'onClicked', sessionId),
 
   setIcon: (details: chrome.browserAction.TabIconDetails, cb: any) => {
     if (cb) cb();

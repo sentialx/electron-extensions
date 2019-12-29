@@ -11,10 +11,10 @@ export const getTabs = (
   windowId: number = null,
 ) => {
   const tabs = {
-    onCreated: new IpcEvent('tabs', 'onCreated'),
-    onUpdated: new IpcEvent('tabs', 'onUpdated'),
-    onActivated: new IpcEvent('tabs', 'onActivated'),
-    onRemoved: new IpcEvent('tabs', 'onRemoved'),
+    onCreated: new IpcEvent('tabs', 'onCreated', sessionId),
+    onUpdated: new IpcEvent('tabs', 'onUpdated', sessionId),
+    onActivated: new IpcEvent('tabs', 'onActivated', sessionId),
+    onRemoved: new IpcEvent('tabs', 'onRemoved', sessionId),
 
     get: (tabId: number, callback: (tab: chrome.tabs.Tab) => void) => {
       tabs.query({}, tabs => {

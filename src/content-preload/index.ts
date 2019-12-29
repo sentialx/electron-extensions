@@ -53,6 +53,8 @@ if (sessionId !== -1) {
     Object.keys(extensions).forEach(key => {
       const extension = extensions[key];
 
+      if (!extension.contentScripts) return;
+
       extension.contentScripts.forEach(script => {
         injectContentScript(script, extension, sessionId);
       });

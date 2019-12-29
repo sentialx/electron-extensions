@@ -48,11 +48,18 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
     contextMenus: {
       onClicked: new IpcEvent('contextMenus', 'onClicked'),
       create: () => {},
+      removeAll: () => {},
     },
 
     windows: {
       get: () => {},
       onFocusChanged: new IpcEvent('windows', 'onFocusChanged'),
+    },
+
+    management: {
+      getSelf: () => ({
+        installType: 'normal',
+      }),
     },
 
     privacy: {

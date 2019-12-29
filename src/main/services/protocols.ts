@@ -4,21 +4,19 @@ import { join } from 'path';
 import { parse } from 'url';
 import { ExtensibleSession } from '..';
 
-if (protocol) {
-  protocol.registerSchemesAsPrivileged([
-    {
-      scheme: 'electron-extension',
-      privileges: {
-        bypassCSP: true,
-        secure: true,
-        standard: true,
-        supportFetchAPI: true,
-        allowServiceWorkers: true,
-        corsEnabled: true,
-      },
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'electron-extension',
+    privileges: {
+      bypassCSP: true,
+      secure: true,
+      standard: true,
+      supportFetchAPI: true,
+      allowServiceWorkers: true,
+      corsEnabled: true,
     },
-  ]);
-}
+  },
+]);
 
 const registerProtocol = (
   extensibleSession: ExtensibleSession,

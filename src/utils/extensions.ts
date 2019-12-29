@@ -62,9 +62,9 @@ export const startBackgroundPage = async (
       type: 'backgroundPage',
       commandLineSwitches: ['--background-page'],
       webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
-        webSecurity: false,
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: true,
       },
     });
 

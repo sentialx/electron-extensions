@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, webFrame } from 'electron';
 import { parse } from 'url';
 
 import { getAPI } from '../api';
@@ -27,18 +27,9 @@ const extension: IpcExtension = ipcRenderer.sendSync(
   extensionId,
 );
 
-process.once('loaded', () => {
+process.once('loaded', async () => {
   const api = getAPI(extension, sessionId);
 
-  window.chrome = window.browser = api;
-  window.webext = api;
-
-  process.once('loaded', () => {
-    delete global.require;
-    delete global.module;
-    delete global.Buffer;
-    delete global.setImmediate;
-    delete global.clearImmediate;
-    delete global.global;
-  });
+  const w: any = await webFrame.executeJavaScript('window');
+  w.chrome = w.browser = w.webext = api;
 });

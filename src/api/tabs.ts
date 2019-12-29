@@ -37,8 +37,6 @@ export const getTabs = (
         `api-tabs-query-${sessionId}`,
       );
 
-      console.log(data);
-
       callback(
         data.filter(tab => {
           for (const key in queryInfo) {

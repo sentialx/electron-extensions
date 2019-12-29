@@ -52,7 +52,14 @@ const runContentScript = async (
 const runStylesheet = (code: string) => {
   const styleElement = document.createElement('style');
   styleElement.textContent = code;
-  document.body.appendChild(styleElement);
+
+  const fire = () => document.body.appendChild(styleElement);
+
+  if (!document.body) {
+    document.addEventListener('DOMContentLoaded', fire);
+  } else {
+    fire();
+  }
 };
 
 export const injectContentScript = (

@@ -204,10 +204,13 @@ export class ExtensibleSession extends EventEmitter {
       `api-browserAction-onClicked-${window.webContents.id}`,
       (e, extensionId: string, tabId: number) => {
         const tab = webContentsToTab(webContents.fromId(tabId), this);
-        this.extensions[extensionId].backgroundPage.webContents.send(
-          'api-emit-event-browserAction-onClicked',
-          tab,
-        );
+        const { backgroundPage } = this.extensions[extensionId];
+        if (backgroundPage) {
+          backgroundPage.webContents.send(
+            'api-emit-event-browserAction-onClicked',
+            tab,
+          );
+        }
       },
     );
 

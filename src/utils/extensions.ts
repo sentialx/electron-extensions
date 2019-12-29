@@ -92,6 +92,7 @@ export const sendToBackgroundPages = (
   ...args: any[]
 ) => {
   for (const key in ses.extensions) {
+    if (!ses.extensions[key].backgroundPage) return;
     const { webContents } = ses.extensions[key].backgroundPage;
     if (!webContents.isDestroyed()) {
       webContents.send(msg, ...args);

@@ -181,6 +181,9 @@ export const runMessagingService = (ses: ExtensibleSession) => {
       if (webContentsValid(e.sender)) {
         Object.keys(ses.extensions).forEach(key => {
           const { backgroundPage } = ses.extensions[key];
+
+          if (!backgroundPage) return;
+
           const contents = backgroundPage.webContents;
 
           if (e.sender.id !== contents.id) {

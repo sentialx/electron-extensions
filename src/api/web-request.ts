@@ -25,4 +25,5 @@ export const getWebRequest = () => ({
   onBeforeRedirect: new WebRequestEvent('onBeforeRedirect'),
   onCompleted: new WebRequestEvent('onCompleted'),
   onErrorOccurred: new WebRequestEvent('onErrorOccurred'),
+  onAuthRequired: new WebRequestEvent('onAuthRequired'),
 });

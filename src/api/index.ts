@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, session } from 'electron';
 import { Port } from '../models/port';
 import { IpcExtension } from '../models/ipc-extension';
 import { IpcEvent } from '../models/ipc-event';
@@ -57,9 +57,18 @@ export const getAPI = (extension: IpcExtension, sessionId: number) => {
     },
 
     management: {
-      getSelf: () => ({
-        installType: 'normal',
-      }),
+      getSelf: (cb: any) => {
+        if (cb) cb({ installType: 'normal' });
+      },
+      getAll: (cb: any) => {
+        if (cb) {
+          cb(
+            Object.values(
+              ipcRenderer.sendSync(`get-extensions-${sessionId}`),
+            ).map(x => ({ installType: 'normal' })),
+          );
+        }
+      },
     },
 
     privacy: {

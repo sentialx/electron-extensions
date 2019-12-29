@@ -157,22 +157,23 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`api-runtime-sendMessage-${ses.id}`, async (e, data: any) => {
     const { extensionId } = data;
     const { backgroundPage } = ses.extensions[extensionId];
-    const { webContents } = backgroundPage;
 
-    if (e.sender.id !== webContents.id) {
-      webContents.send('api-runtime-sendMessage', data, e.sender.id);
-    }
+    if (e.sender.id === backgroundPage.webContents.id) return;
+
+    backgroundPage.webContents.send(
+      'api-runtime-sendMessage',
+      data,
+      e.sender.id,
+    );
   });
 
   ipcMain.on(`api-tabs-sendMessage-${ses.id}`, async (e, data: any) => {
     const { tabId } = data;
+    const contents = webContents.fromId(tabId);
 
-    const contents = getAllWebContentsInSession(ses.session);
-    for (const content of contents) {
-      if (content.id === tabId) {
-        content.send('api-tabs-sendMessage', data, e.sender.id);
-      }
-    }
+    if (!contents) return;
+
+    contents.send('api-tabs-sendMessage', data, e.sender.id);
   });
 
   ipcMain.on(

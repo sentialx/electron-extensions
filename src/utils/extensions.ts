@@ -6,11 +6,12 @@ import { IpcExtension } from '../models/ipc-extension';
 import { ExtensibleSession, storages } from '../main';
 import { getPath } from './paths';
 import { StorageArea } from '../models/storage-area';
+import { PROTOCOL } from '../constants';
 
 export const manifestToExtensionInfo = (manifest: chrome.runtime.Manifest) => {
   return {
     startPage: format({
-      protocol: 'electron-extension',
+      protocol: PROTOCOL,
       slashes: true,
       hostname: manifest.extensionId,
       pathname: manifest.devtools_page,
@@ -65,12 +66,13 @@ export const startBackgroundPage = async (
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true,
+        webSecurity: false,
       },
-    });
+    } as Electron.BrowserWindowConstructorOptions);
 
     contents.loadURL(
       format({
-        protocol: 'electron-extension',
+        protocol: PROTOCOL,
         slashes: true,
         hostname: extensionId,
         pathname: fileName,
@@ -142,7 +144,7 @@ export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
 
   if (manifest.content_scripts) {
     const readArrayOfFiles = async (relativePath: string) => ({
-      url: `electron-extension://${manifest.extensionId}/${relativePath}`,
+      url: `${PROTOCOL}://${manifest.extensionId}/${relativePath}`,
       code: await promises.readFile(
         join(manifest.srcDirectory, relativePath),
         'utf8',

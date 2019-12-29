@@ -6,6 +6,7 @@ import { LocalEvent } from '../models/local-event';
 import { makeId } from '../utils/string';
 import { Port } from '../models/port';
 import { getSenderContent } from '../utils/sender';
+import { PROTOCOL } from '../constants';
 
 export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
   lastError: null as any,
@@ -115,7 +116,7 @@ export const getRuntime = (extension: IpcExtension, sessionId: number) => ({
 
   getURL: (path: string) =>
     format({
-      protocol: 'electron-extension',
+      protocol: PROTOCOL,
       slashes: true,
       hostname: extension.id,
       pathname: path,

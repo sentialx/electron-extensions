@@ -3,10 +3,14 @@ import { readFile } from 'fs';
 import { join } from 'path';
 import { parse } from 'url';
 import { ExtensibleSession } from '..';
+import { PROTOCOL } from '../../constants';
+
+const fileType = require('file-type');
+const mime = require('mime-types');
 
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: 'electron-extension',
+    scheme: PROTOCOL,
     privileges: {
       bypassCSP: true,
       secure: true,
@@ -22,8 +26,9 @@ const registerProtocol = (
   extensibleSession: ExtensibleSession,
   ses: Electron.Session,
 ) => {
+  ses.protocol.unregisterProtocol(PROTOCOL);
   ses.protocol.registerBufferProtocol(
-    'electron-extension',
+    PROTOCOL,
     (request, callback) => {
       const parsed = parse(decodeURIComponent(request.url));
 
@@ -51,7 +56,18 @@ const registerProtocol = (
           return (callback as any)(-6); // FILE_NOT_FOUND
         }
 
-        return callback(content);
+        const type = fileType(content);
+
+        if (type) {
+          return callback({ mimeType: type.mime, data: content });
+        } else {
+          const mimeType = mime.lookup(parsed.pathname);
+          if (mimeType) {
+            return callback({ mimeType, data: content });
+          } else {
+            return callback(content);
+          }
+        }
       });
 
       return null;

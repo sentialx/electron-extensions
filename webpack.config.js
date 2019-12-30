@@ -81,8 +81,7 @@ const preloadsConfig = getConfig({
   watch: dev,
 
   entry: {
-    'content-preload': './src/content-preload',
-    'background-preload': './src/background-preload',
+    preload: './src/preload',
     'popup-preload': './src/popup-preload',
   },
 

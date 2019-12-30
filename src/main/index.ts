@@ -1,5 +1,5 @@
 import {
-  Session,
+  session,
   ipcMain,
   app,
   WebContents,
@@ -30,36 +30,12 @@ const sessions: ExtensibleSession[] = [];
 export const storages: Map<string, IStorage> = new Map();
 
 ipcMain.on('get-session-id', e => {
-  let ses = sessions.find(x => x.session === e.sender.session);
+  const ses = sessions.find(x => x.session === e.sender.session);
 
   if (ses) {
     e.returnValue = ses.id;
-  } else {
-    ses = sessions.find(x => {
-      const extension = Object.values(x.extensions).find(
-        x => x.backgroundPage.webContents.id === e.sender.id,
-      );
-      return !!extension;
-    });
-    if (ses) {
-      e.returnValue = ses.id;
-      return;
-    }
+    return;
   }
-
-  /*const wc = webContents
-    .getAllWebContents()
-    .find(
-      x => x.devToolsWebContents && x.devToolsWebContents.id === e.sender.id,
-    );
-
-  if (wc) {
-    const s = sessions.find(x => x.session === wc.session);
-    if (s) {
-      e.returnValue = s.id;
-      return;
-    }
-  }*/
 
   e.returnValue = -1;
 });
@@ -73,8 +49,7 @@ ipcMain.on('get-webcontents-id', e => {
 });
 
 export interface IOptions {
-  contentPreloadPath?: string;
-  backgroundPreloadPath?: string;
+  preloadPath?: string;
 }
 
 export declare interface ExtensibleSession {
@@ -101,15 +76,21 @@ export class ExtensibleSession extends EventEmitter {
 
   public activeTab = -1;
 
+  public session: Electron.Session;
+
+  public partition: string;
+
   private _initialized = false;
 
   private options: IOptions = {
-    contentPreloadPath: resolve(__dirname, 'content-preload.js'),
-    backgroundPreloadPath: resolve(__dirname, 'background-preload.js'),
+    preloadPath: resolve(__dirname, 'preload.js'),
   };
 
-  constructor(public session: Session, options: IOptions = {}) {
+  constructor(partition: string, options: IOptions = {}) {
     super();
+
+    this.partition = partition;
+    this.session = session.fromPartition(partition);
 
     registerProtocols(this);
 
@@ -139,7 +120,7 @@ export class ExtensibleSession extends EventEmitter {
   async loadExtension(dir: string) {
     if (!this._initialized) {
       this.session.setPreloads(
-        this.session.getPreloads().concat([this.options.contentPreloadPath]),
+        this.session.getPreloads().concat([this.options.preloadPath]),
       );
 
       runWebRequestService(this);
@@ -175,8 +156,8 @@ export class ExtensibleSession extends EventEmitter {
 
     extension.backgroundPage = await startBackgroundPage(
       manifest,
-      this.id,
-      this.options.backgroundPreloadPath,
+      this.options.preloadPath,
+      this.partition,
     );
 
     this.extensions[id] = extension;

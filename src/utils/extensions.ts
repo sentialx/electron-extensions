@@ -32,8 +32,8 @@ export const getIpcExtension = (extension: IpcExtension): IpcExtension => {
 
 export const startBackgroundPage = async (
   { background, srcDirectory, extensionId }: chrome.runtime.Manifest,
-  sessionId: number,
-  preloadPath: string,
+  preload: string,
+  partition: string,
 ) => {
   if (background) {
     const { page, scripts } = background;
@@ -58,15 +58,14 @@ export const startBackgroundPage = async (
     }
 
     const contents: WebContents = (webContents as any).create({
-      partition: `persist:electron-extension-${sessionId}`,
-      preload: preloadPath,
+      partition,
+      preload,
       type: 'backgroundPage',
       commandLineSwitches: ['--background-page'],
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true,
-        webSecurity: false,
       },
     } as Electron.BrowserWindowConstructorOptions);
 

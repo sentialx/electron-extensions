@@ -44,6 +44,7 @@ ipcMain.on('get-webcontents-id', e => {
 export interface IOptions {
   preloadPath?: string;
   blacklist?: string[];
+  partition?: string;
 }
 
 export declare interface ExtensibleSession {
@@ -76,34 +77,31 @@ export class ExtensibleSession extends EventEmitter {
   // Last active window
   public lastFocusedWindow: BrowserWindow;
 
-  public activeTab = -1;
-
   public session: Electron.Session;
 
+  public activeTab = -1;
   public partition: string;
-
   public blacklist: string[] = [];
 
+  private _configured = false;
   private _initialized = false;
 
   private _options: IOptions = {
     preloadPath: resolve(__dirname, 'preload.js'),
     blacklist: [],
+    partition: null,
   };
 
-  constructor(partition: string, options: IOptions = {}) {
+  constructor(options: IOptions = {}) {
     super();
 
-    this.partition = partition;
-    this.session = session.fromPartition(partition);
-
     this._options = { ...this._options, ...options };
-
+    this.partition = this._options.partition;
     this.blacklist = this._options.blacklist;
 
-    registerProtocols(this);
-
     sessions.push(this);
+
+    this._init();
 
     app.on('web-contents-created', (e, webContents) => {
       if (
@@ -124,8 +122,22 @@ export class ExtensibleSession extends EventEmitter {
     });
   }
 
+  private async _init() {
+    if (!app.isReady()) await app.whenReady();
+
+    this.session = this.partition
+      ? session.fromPartition(this.partition)
+      : session.defaultSession;
+
+    registerProtocols(this);
+
+    this._initialized = true;
+  }
+
   async loadExtension(dir: string) {
-    if (!this._initialized) {
+    if (!this._initialized) throw new Error('App is not ready');
+
+    if (!this._configured) {
       this.session.setPreloads(
         this.session.getPreloads().concat([this._options.preloadPath]),
       );
@@ -133,7 +145,7 @@ export class ExtensibleSession extends EventEmitter {
       runWebRequestService(this);
       runMessagingService(this);
 
-      this._initialized = true;
+      this._configured = true;
     }
 
     const stats = await promises.stat(dir);

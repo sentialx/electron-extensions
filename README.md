@@ -29,12 +29,12 @@ app.on('ready', () => {
 
 ## Class `ExtensibleSession` `main`
 
-### `new ExtensibleSession(partition: string, options: IOptions)`
+### `new ExtensibleSession(options: IOptions)`
 
-- `partition` string - By default `null`. It's used for injecting preloads to
-  load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
 - `options` object
-  - `preloadPath` string - Path to content preload script. The option can be useful for bundlers like `webpack` if you're using `CopyPlugin`.
+  - `partition` string - By default `null`. It's used for injecting preloads to
+    load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
+  - `preloadPath` string - Path to content preload script. The option can be useful for bundlers like `webpack` if you're using `CopyWebpackPlugin`.
   - `blacklist` string[] - List of URLs or glob patterns preventing from injecting `content_scripts` to. For example `[wexond://*/*]`.
 
 It's only for the main process. It's used to load extensions and handle their events.
@@ -101,5 +101,3 @@ import { extensionsRenderer } from 'electron-extensions/renderer';
 #### `browserAction.onClicked(extensionId: string, tabId: number)`
 
 Sends `chrome.browserAction.onClicked` event to a given extension.
-
-### Events

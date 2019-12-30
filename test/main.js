@@ -16,7 +16,7 @@ async function createWindow() {
     },
   });
 
-  const extensions = new ExtensibleSession(session.defaultSession);
+  const extensions = new ExtensibleSession();
   const extension = await extensions.loadExtension(
     resolve(app.getAppPath(), './extension'),
   );

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const { ExtensibleSession } = require('../build/main');
 const { resolve } = require('path');
 

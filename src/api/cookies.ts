@@ -17,18 +17,21 @@ export const cookies = (extension: IpcExtension, sessionId: number) => ({
   onChanged: new IpcEvent('cookies', 'onChanged', sessionId),
 
   get: async (details: any, callback: any) => {
-    callback((await callCookiesMethod('getAll', details, sessionId))[0]);
+    if (callback)
+      callback((await callCookiesMethod('getAll', details, sessionId))[0]);
   },
 
   getAll: async (details: any, callback: any) => {
-    callback(await callCookiesMethod('getAll', details, sessionId));
+    if (callback)
+      callback(await callCookiesMethod('getAll', details, sessionId));
   },
 
   set: async (details: any, callback: any) => {
-    callback(await callCookiesMethod('set', details, sessionId));
+    if (callback) callback(await callCookiesMethod('set', details, sessionId));
   },
 
   remove: async (details: any, callback: any) => {
-    callback(await callCookiesMethod('remove', details, sessionId));
+    if (callback)
+      callback(await callCookiesMethod('remove', details, sessionId));
   },
 });

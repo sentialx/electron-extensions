@@ -6,7 +6,7 @@ import {
   BrowserWindow,
   webContents,
 } from 'electron';
-import { resolve, basename, join } from 'path';
+import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
 import { registerProtocols } from './services/protocols';

@@ -72,19 +72,19 @@ const interceptRequest = async (
   eventId: number,
   callback: any = null,
 ) => {
-  const defaultRes: any = {
+  const response: any = {
     cancel: false,
   };
 
   const detailsForApi = { ...details };
 
   if (details.requestHeaders) {
-    defaultRes.requestHeaders = details.requestHeaders;
+    response.requestHeaders = details.requestHeaders;
     detailsForApi.requestHeaders = objectToArray(details.requestHeaders);
   }
 
   if (details.responseHeaders) {
-    defaultRes.responseHeaders = details.responseHeaders;
+    response.responseHeaders = details.responseHeaders;
     detailsForApi.responseHeaders = objectToArray(details.responseHeaders);
   }
 
@@ -102,41 +102,26 @@ const interceptRequest = async (
     }
 
     if (res.redirectURL) {
-      return cb({
-        cancel: false,
-        redirectURL: res.redirectUrl,
-      });
+      response.redirectURL = res.redirectURL;
     }
 
-    if (
-      res.requestHeaders &&
-      (eventName === 'onBeforeSendHeaders' || eventName === 'onSendHeaders')
-    ) {
-      const requestHeaders = {
+    // TODO(sentialx): it breaks websites with login
+    if (res.requestHeaders) {
+      response.requestHeaders = {
         ...details.requestHeaders,
-        ...arrayToObject(res.requestHeaders),
+        // ...arrayToObject(res.requestHeaders),
       };
-
-      return cb({
-        cancel: false,
-        requestHeaders,
-      });
     }
 
     if (res.responseHeaders) {
-      const responseHeaders = {
+      response.responseHeaders = {
         ...details.responseHeaders,
-        ...arrayToObject(res.responseHeaders),
+        // ...arrayToObject(res.responseHeaders),
       };
-
-      return cb({
-        responseHeaders,
-        cancel: false,
-      });
     }
   }
 
-  cb(defaultRes);
+  cb(response);
 };
 
 export const runWebRequestService = (ses: ExtensibleSession) => {

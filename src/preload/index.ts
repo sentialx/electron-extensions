@@ -33,32 +33,31 @@ if (protocol === `${PROTOCOL}:`) {
 } else {
   global.isTab = true;
 
-  const arg = process.argv.find(x => x.startsWith('--blacklist='));
-  const blackList: string[] = arg
-    ? JSON.parse(arg.split('--blacklist=')[1])
-    : [];
-
   if (sessionId !== -1) {
-    const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
-      `get-extensions-${sessionId}`,
+    const blacklist: string[] = ipcRenderer.sendSync(
+      `get-blacklist-${sessionId}`,
     );
 
-    const setImmediateTemp: any = setImmediate;
+    if (!blacklist.find(x => window.location.href.startsWith(x))) {
+      const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
+        `get-extensions-${sessionId}`,
+      );
 
-    process.once('loaded', () => {
-      global.setImmediate = setImmediateTemp;
+      const setImmediateTemp: any = setImmediate;
 
-      if (blackList.find(x => window.location.href.startsWith(x))) return;
+      process.once('loaded', () => {
+        global.setImmediate = setImmediateTemp;
 
-      Object.keys(extensions).forEach(key => {
-        const extension = extensions[key];
+        Object.keys(extensions).forEach(key => {
+          const extension = extensions[key];
 
-        if (!extension.contentScripts) return;
+          if (!extension.contentScripts) return;
 
-        extension.contentScripts.forEach(script => {
-          injectContentScript(script, extension, sessionId);
+          extension.contentScripts.forEach(script => {
+            injectContentScript(script, extension, sessionId);
+          });
         });
       });
-    });
+    }
   }
 }

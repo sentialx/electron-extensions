@@ -50,6 +50,7 @@ ipcMain.on('get-webcontents-id', e => {
 
 export interface IOptions {
   preloadPath?: string;
+  blacklist?: string[];
 }
 
 export declare interface ExtensibleSession {
@@ -80,10 +81,13 @@ export class ExtensibleSession extends EventEmitter {
 
   public partition: string;
 
+  public blacklist: string[] = [];
+
   private _initialized = false;
 
-  private options: IOptions = {
+  private _options: IOptions = {
     preloadPath: resolve(__dirname, 'preload.js'),
+    blacklist: [],
   };
 
   constructor(partition: string, options: IOptions = {}) {
@@ -92,9 +96,11 @@ export class ExtensibleSession extends EventEmitter {
     this.partition = partition;
     this.session = session.fromPartition(partition);
 
-    registerProtocols(this);
+    this._options = { ...this._options, ...options };
 
-    this.options = { ...this.options, ...options };
+    this.blacklist = this._options.blacklist;
+
+    registerProtocols(this);
 
     sessions.push(this);
 
@@ -120,7 +126,7 @@ export class ExtensibleSession extends EventEmitter {
   async loadExtension(dir: string) {
     if (!this._initialized) {
       this.session.setPreloads(
-        this.session.getPreloads().concat([this.options.preloadPath]),
+        this.session.getPreloads().concat([this._options.preloadPath]),
       );
 
       runWebRequestService(this);
@@ -156,7 +162,7 @@ export class ExtensibleSession extends EventEmitter {
 
     extension.backgroundPage = await startBackgroundPage(
       manifest,
-      this.options.preloadPath,
+      this._options.preloadPath,
       this.partition,
     );
 

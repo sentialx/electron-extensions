@@ -4,7 +4,6 @@ import { ExtensibleSession, storages } from '..';
 import {
   getAllWebContentsInSession,
   webContentsToTab,
-  webContentsValid,
 } from '../../utils/web-contents';
 import { makeId } from '../../utils/string';
 import { promises } from 'fs';
@@ -13,6 +12,10 @@ import { join } from 'path';
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e, id: string) => {
     e.returnValue = getIpcExtension(ses.extensions[id]);
+  });
+
+  ipcMain.on(`get-blacklist-${ses.id}`, e => {
+    e.returnValue = ses.blacklist;
   });
 
   ipcMain.on(`get-extensions-${ses.id}`, e => {

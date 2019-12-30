@@ -9,4 +9,5 @@ export interface IpcExtension {
   alarms?: any[];
   backgroundPage?: BackgroundPage;
   contentScripts?: IContentScript[];
+  popupPage?: string;
 }

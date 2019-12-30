@@ -139,6 +139,14 @@ export const loadExtension = async (manifest: chrome.runtime.Manifest) => {
     locale: await loadI18n(manifest),
     id: manifest.extensionId,
     path: manifest.srcDirectory,
+    popupPage: manifest?.browser_action?.default_popup
+      ? format({
+          protocol: PROTOCOL,
+          slashes: true,
+          hostname: manifest.extensionId,
+          pathname: manifest.browser_action.default_popup,
+        })
+      : null,
   };
 
   if (manifest.content_scripts) {

@@ -56,14 +56,14 @@ const registerProtocol = (
           return (callback as any)(-6); // FILE_NOT_FOUND
         }
 
-        const type = fileType(content);
+        const mimeType = mime.lookup(parsed.pathname);
 
-        if (type) {
-          return callback({ mimeType: type.mime, data: content });
+        if (mimeType) {
+          return callback({ mimeType, data: content });
         } else {
-          const mimeType = mime.lookup(parsed.pathname);
-          if (mimeType) {
-            return callback({ mimeType, data: content });
+          const type = fileType(content);
+          if (type) {
+            return callback({ mimeType: type.mime, data: content });
           } else {
             return callback(content);
           }

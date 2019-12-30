@@ -8,6 +8,7 @@ import {
 import { makeId } from '../../utils/string';
 import { promises } from 'fs';
 import { join } from 'path';
+import { matchesPattern } from '../../utils/url';
 
 export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(`get-extension-${ses.id}`, (e, id: string) => {
@@ -96,6 +97,8 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     ) => {
       const contents = webContents.fromId(tabId);
 
+      if (ses.blacklist.find(x => matchesPattern(x, contents.getURL()))) return;
+
       if (contents) {
         if (details.hasOwnProperty('file')) {
           details.code = await promises.readFile(
@@ -113,6 +116,8 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     try {
       const { tabId, details, basePath } = data;
       const contents = webContents.fromId(tabId);
+
+      if (ses.blacklist.find(x => matchesPattern(x, contents.getURL()))) return;
 
       if (contents) {
         if (details.hasOwnProperty('file')) {

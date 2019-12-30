@@ -48,27 +48,14 @@ Loads an extension from a given path.
 #### `addWindow(window: Electron.BrowserWindow)`
 
 Adds a BrowserWindow to send and observe UI related events such as
-`chrome.browserAction.setBadgeText` or `chrome.browserAction.onClicked`.
+
+- `chrome.browserAction.onClicked`
 
 ### Instance properties
 
 #### `blacklist` string[]
 
 List of URLs or glob patterns preventing from injecting `content_scripts` to. For example `[wexond://*/*]`.
-
-## Object `extensionsRenderer`
-
-### Usage in `renderer`
-
-```typescript
-import { extensionsRenderer } from 'electron-extensions/renderer';
-```
-
-### Instance methods
-
-#### `browserAction.onClicked(extensionId: string, tabId: number)`
-
-Sends `chrome.browserAction.onClicked` event to a given extension.
 
 ### Events
 
@@ -100,3 +87,19 @@ Returns:
 
 - `details` chrome.tabs.CreateProperties
 - `callback` (tabId: number) => void - Must be called with the created tab id as an argument. Also, the `tabId` must be the same as any attached `webContents` id
+
+## Object `extensionsRenderer`
+
+### Usage in `renderer`
+
+```typescript
+import { extensionsRenderer } from 'electron-extensions/renderer';
+```
+
+### Instance methods
+
+#### `browserAction.onClicked(extensionId: string, tabId: number)`
+
+Sends `chrome.browserAction.onClicked` event to a given extension.
+
+### Events

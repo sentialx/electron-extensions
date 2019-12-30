@@ -1,11 +1,4 @@
-import {
-  session,
-  ipcMain,
-  app,
-  WebContents,
-  BrowserWindow,
-  webContents,
-} from 'electron';
+import { session, ipcMain, app, BrowserWindow, webContents } from 'electron';
 import { resolve, basename } from 'path';
 import { promises, existsSync } from 'fs';
 
@@ -62,6 +55,14 @@ export declare interface ExtensibleSession {
     ) => void,
   ): this;
 
+  on(
+    event: 'set-badge-text',
+    listener: (
+      extensionId: string,
+      details: chrome.browserAction.BadgeTextDetails,
+    ) => void,
+  ): this;
+
   on(event: string, listener: Function): this;
 }
 
@@ -70,7 +71,7 @@ export class ExtensibleSession extends EventEmitter {
 
   public id = id++;
 
-  public webContents: WebContents[] = [];
+  public windows: BrowserWindow[] = [];
 
   // Last active window
   public lastFocusedWindow: BrowserWindow;
@@ -179,7 +180,7 @@ export class ExtensibleSession extends EventEmitter {
   }
 
   addWindow(window: BrowserWindow) {
-    this.webContents.push(window.webContents);
+    this.windows.push(window);
 
     if (window.isFocused()) this.lastFocusedWindow = window;
 
@@ -192,6 +193,15 @@ export class ExtensibleSession extends EventEmitter {
       (e, extensionId: string, tabId: number) => {
         const tab = webContentsToTab(webContents.fromId(tabId), this);
         const { backgroundPage } = this.extensions[extensionId];
+
+        /*
+        TODO(sentialx):
+        getAllWebContentsInSession(this.session).forEach(x => {
+          if (x.id !== e.sender.id) {
+            x.send('api-emit-event-browserAction-onClicked', tab, extensionId);
+          }
+        });*/
+
         if (backgroundPage) {
           backgroundPage.webContents.send(
             'api-emit-event-browserAction-onClicked',

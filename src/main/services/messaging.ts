@@ -276,23 +276,14 @@ export const runMessagingService = (ses: ExtensibleSession) => {
     }
   });
 
-  ipcMain.on(
+  ipcMain.handle(
     `api-browserAction-setBadgeText-${ses.id}`,
     (
       e,
-      responseId: string,
       extensionId: string,
       details: chrome.browserAction.BadgeTextDetails,
     ) => {
-      const newId = makeId(32);
-
-      for (const wc of ses.webContents) {
-        wc.send('api-browserAction-setBadgeText', newId, extensionId, details);
-      }
-
-      ipcMain.on(`api-browserAction-setBadgeText-${newId}`, () => {
-        e.sender.send(`api-browserAction-setBadgeText-${responseId}`);
-      });
+      ses.emit('set-badge-text', extensionId, details);
     },
   );
 

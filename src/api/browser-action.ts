@@ -21,20 +21,18 @@ export const getBrowserAction = (
     if (cb) cb();
   },
 
-  setBadgeText: (details: chrome.browserAction.BadgeTextDetails, cb: any) => {
-    const responseId = makeId(32);
-
-    ipcRenderer.send(
+  setBadgeText: async (
+    details: chrome.browserAction.BadgeTextDetails,
+    cb: any,
+  ) => {
+    await ipcRenderer.invoke(
       `api-browserAction-setBadgeText-${sessionId}`,
-      responseId,
       extension.id,
       details,
     );
 
     if (cb) {
-      ipcRenderer.once(`api-browserAction-setBadgeText-${responseId}`, () => {
-        cb();
-      });
+      cb();
     }
   },
 });

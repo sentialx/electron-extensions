@@ -27,25 +27,15 @@ app.on('ready', () => {
 
 # Documentation
 
-## Class `ExtensibleSession`
+## Class `ExtensibleSession` `main`
 
-### `new ExtensibleSession(session: Electron.Session)`
+### `new ExtensibleSession(partition: string, options: IOptions)`
 
-- `session` Electron.Session - used for injecting preloads to load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
-
-If you want to prevent injecting `content_scripts` to some URLs that start with a specified string, use `--blacklist=`.
-
-For example:
-
-```js
-{
-  webPreferences: {
-    additionalArguments: ['--blacklist=["wexond://"]'],
-  },
-}
-```
-
-It means all URLs starting with `wexond://` should be protected from injecting `content_scripts`.
+- `partition` string - By default `null`. It's used for injecting preloads to
+  load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
+- `options` object
+  - `preloadPath` string - Path to content preload script. The option can be useful for bundlers like `webpack` if you're using `CopyPlugin`.
+  - `blacklist` string[] - List of URLs or glob patterns preventing from injecting `content_scripts` to. For example `[wexond://*/*]`.
 
 It's only for the main process. It's used to load extensions and handle their events.
 
@@ -57,7 +47,14 @@ Loads an extension from a given path.
 
 #### `addWindow(window: Electron.BrowserWindow)`
 
-Adds a BrowserWindow to send and observe UI related events such as `chrome.browserAction.setBadgeText` or `chrome.browserAction.onClicked`.
+Adds a BrowserWindow to send and observe UI related events such as
+`chrome.browserAction.setBadgeText` or `chrome.browserAction.onClicked`.
+
+### Instance properties
+
+#### `blacklist` string[]
+
+List of URLs or glob patterns preventing from injecting `content_scripts` to. For example `[wexond://*/*]`.
 
 ## Object `extensionsRenderer`
 

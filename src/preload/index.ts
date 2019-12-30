@@ -5,6 +5,7 @@ import { injectContentScript } from './inject';
 import { parse } from 'url';
 import { PROTOCOL } from '../constants';
 import { getAPI } from '../api';
+import { matchesPattern } from '../utils/url';
 
 declare const global: any;
 
@@ -38,7 +39,7 @@ if (protocol === `${PROTOCOL}:`) {
       `get-blacklist-${sessionId}`,
     );
 
-    if (!blacklist.find(x => window.location.href.startsWith(x))) {
+    if (!blacklist.find(x => matchesPattern(x, window.location.href))) {
       const extensions: { [key: string]: IpcExtension } = ipcRenderer.sendSync(
         `get-extensions-${sessionId}`,
       );

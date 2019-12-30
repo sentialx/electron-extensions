@@ -33,21 +33,10 @@ app.on('ready', () => {
 
 - `session` Electron.Session - used for injecting preloads to load `content_scripts` in all webContents within a given Electron `session`. Must be called in `app` `ready` event.
 
-If the `webContents` are in multiple `BrowserWindows`, the `--window-id=<the BrowserWindow id>` additional argument should be passed to the `webContents`.
-For reference see [`the Electron documentation`](https://electronjs.org/docs/api/browser-window#new-browserwindowoptions).
-
-For example:
-```js
-{
-  webPreferences: {
-    additionalArguments: ['--window-id=1'],
-  },
-}
-```
-
 If you want to prevent injecting `content_scripts` to some URLs that start with a specified string, use `--blacklist=`.
 
 For example:
+
 ```js
 {
   webPreferences: {
@@ -91,6 +80,7 @@ Sends `chrome.browserAction.onClicked` event to a given extension.
 Emitted when `chrome.browserAction.setBadgeText` has been called in an extension.
 
 Returns:
+
 - `extensionId` string
 - `details` chrome.browserAction.BadgeTextDetails
 
@@ -104,11 +94,12 @@ Emitted when `chrome.tabs.create` has been called in an extension.
 import { extensionsRenderer } from 'electron-extensions';
 
 extensionsRenderer.on('create-tab', (details, callback) => {
-  const tab = createTab(details) // Some create tab method...
+  const tab = createTab(details); // Some create tab method...
   callback(tab.id);
-})
+});
 ```
 
 Returns:
+
 - `details` chrome.tabs.CreateProperties
 - `callback` (tabId: number) => void - Must be called with the created tab id as an argument. Also, the `tabId` must be the same as any attached `webContents` id

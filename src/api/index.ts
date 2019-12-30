@@ -1,4 +1,4 @@
-import { ipcRenderer, session } from 'electron';
+import { ipcRenderer } from 'electron';
 import { Port } from '../models/port';
 import { IpcExtension } from '../models/ipc-extension';
 import { IpcEvent } from '../models/ipc-event';
@@ -11,19 +11,11 @@ import { getWebRequest } from './web-request';
 import { getWebNavigation } from './web-navigation';
 import { cookies } from './cookies';
 
-const arg = process.argv.find(x => x.startsWith('--window-id='));
-
-let windowId: number = null;
-
-if (arg) {
-  windowId = parseInt(arg.split('--window-id=')[1], 10);
-}
-
 export const getAPI = (extension: IpcExtension, sessionId: number) => {
   const api = {
     runtime: getRuntime(extension, sessionId),
     storage: getStorage(extension.id, sessionId),
-    tabs: getTabs(extension, sessionId, windowId),
+    tabs: getTabs(extension, sessionId),
     i18n: getI18n(extension),
     browserAction: getBrowserAction(extension, sessionId),
     webRequest: getWebRequest(),

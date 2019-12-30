@@ -48,12 +48,7 @@ export const runMessagingService = (ses: ExtensibleSession) => {
 
   ipcMain.on(
     `api-tabs-create-${ses.id}`,
-    (
-      e,
-      responseId: string,
-      data: chrome.tabs.CreateProperties,
-      windowId: number,
-    ) => {
+    (e, responseId: string, data: chrome.tabs.CreateProperties) => {
       const type = e.sender.getType();
 
       let realWindowId = -1;
@@ -63,10 +58,8 @@ export const runMessagingService = (ses: ExtensibleSession) => {
         realWindowId = data.windowId;
       } else if (type === 'backgroundPage') {
         bw = ses.lastFocusedWindow;
-      } else if (type === 'browserView') {
-        bw = BrowserWindow.fromId(windowId);
-      } else if (type === 'webview') {
-        bw = BrowserWindow.fromWebContents(e.sender.hostWebContents);
+      } else if (type === 'browserView' || type === 'webview') {
+        bw = (e.sender as any).getOwnerBrowserWindow();
       }
 
       if (bw) {
@@ -183,34 +176,10 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     `api-port-postMessage-${ses.id}`,
     (e, { portId, msg, tab }: any) => {
-      if (webContentsValid(e.sender)) {
-        Object.keys(ses.extensions).forEach(key => {
-          const { backgroundPage } = ses.extensions[key];
-
-          if (!backgroundPage) return;
-
-          const contents = backgroundPage.webContents;
-
-          if (e.sender.id !== contents.id) {
-            contents.send(`api-port-postMessage-${portId}`, msg, tab);
-          }
-        });
-      } else {
-        let contents = getAllWebContentsInSession(ses.session);
-        for (const content of contents) {
-          if (content.id !== e.sender.id) {
-            content.send(`api-port-postMessage-${portId}`, msg, tab);
-          }
-        }
-
-        contents = getAllWebContentsInSession(
-          session.fromPartition(`persist:electron-extension-${ses.id}`),
-        );
-
-        for (const content of contents) {
-          if (content.id !== e.sender.id && webContentsValid(content)) {
-            content.send(`api-port-postMessage-${portId}`, msg, tab);
-          }
+      const contents = getAllWebContentsInSession(ses.session);
+      for (const content of contents) {
+        if (content.id !== e.sender.id) {
+          content.send(`api-port-postMessage-${portId}`, msg, tab);
         }
       }
     },

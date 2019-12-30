@@ -5,11 +5,7 @@ import { makeId } from '../utils/string';
 import { IpcExtension } from '../models/ipc-extension';
 import { getSender } from '../utils/sender';
 
-export const getTabs = (
-  extension: IpcExtension,
-  sessionId: number,
-  windowId: number = null,
-) => {
+export const getTabs = (extension: IpcExtension, sessionId: number) => {
   const tabs = {
     onCreated: new IpcEvent('tabs', 'onCreated', sessionId),
     onUpdated: new IpcEvent('tabs', 'onUpdated', sessionId),
@@ -66,7 +62,6 @@ export const getTabs = (
         `api-tabs-create-${sessionId}`,
         responseId,
         createProperties,
-        windowId,
       );
 
       if (callback) {

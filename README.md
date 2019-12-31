@@ -14,15 +14,14 @@ The library is really easy-to-use. All you have to do is to put the following co
 
 ```typescript
 import { ExtensibleSession } from 'electron-extensions/main';
-import { app, session } from 'electron';
+import { app } from 'electron';
 
-app.on('ready', () => {
-  ...
-  const extensions = new ExtensibleSession(session.defaultSession);
+const extensions = new ExtensibleSession();
+
+(async () => {
+  await app.whenReady();
   extensions.loadExtension('C:/.../abcdefghijklmnoprstuwxyz'); // Path to the extension to load
-  ...
-});
-
+})();
 ```
 
 # Documentation
@@ -55,7 +54,7 @@ Adds a BrowserWindow to send and observe UI related events such as
 
 #### `blacklist` string[]
 
-List of URLs or glob patterns preventing from injecting `content_scripts` to. For example `[wexond://*/*]`.
+List of URLs or glob patterns preventing from injecting `content_scripts` to. For example `[wexond://*]`.
 
 ### Events
 
@@ -100,4 +99,4 @@ import { extensionsRenderer } from 'electron-extensions/renderer';
 
 #### `browserAction.onClicked(extensionId: string, tabId: number)`
 
-Sends `chrome.browserAction.onClicked` event to a given extension.
+Emits `chrome.browserAction.onClicked` event in a given extension.

@@ -28,9 +28,9 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "lint-fix": "npm run lint -- --fix",
     "watch": "cross-env ENV='dev' webpack",
-    "build": "webpack",
+    "build": "webpack && ncp LICENSE build/LICENSE && ncp README.md build/README.md && ncp package.json build/package.json",
     "pub": "rimraf build && npm run build && ncp package.json build/package.json && cd build && npm publish",
-    "lnk": "npm run build && ncp package.json build/package.json && cd build && npm link",
+    "lnk": "npm run build && cd build && npm link",
     "test": "electron test/main.js"
   },
   "pre-commit": [

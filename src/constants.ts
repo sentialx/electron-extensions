@@ -1,1 +1,1 @@
-export const PROTOCOL = 'chrome-extension';
+export const PROTOCOL = 'electron-extension';

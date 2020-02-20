@@ -4,8 +4,8 @@ import { join } from 'path';
 import { parse } from 'url';
 import { ExtensibleSession } from '..';
 import { PROTOCOL } from '../../constants';
+import { fromBuffer } from 'file-type';
 
-const fileType = require('file-type');
 const mime = require('mime-types');
 
 protocol.registerSchemesAsPrivileged([
@@ -51,7 +51,7 @@ const registerProtocol = (
         });
       }
 
-      readFile(join(path, parsed.pathname), (err, content) => {
+      readFile(join(path, parsed.pathname), async (err, content) => {
         if (err) {
           return (callback as any)(-6); // FILE_NOT_FOUND
         }
@@ -61,7 +61,7 @@ const registerProtocol = (
         if (mimeType) {
           return callback({ mimeType, data: content });
         } else {
-          const type = fileType(content);
+          const type = await fromBuffer(content);
           if (type) {
             return callback({ mimeType: type.mime, data: content });
           } else {

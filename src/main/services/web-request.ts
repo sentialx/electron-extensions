@@ -80,6 +80,7 @@ const interceptRequest = async (
 
   if (details.requestHeaders) {
     response.requestHeaders = details.requestHeaders;
+    console.log(details.requestHeaders);
     detailsForApi.requestHeaders = objectToArray(details.requestHeaders);
   }
 

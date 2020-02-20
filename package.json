@@ -1,6 +1,6 @@
 {
   "name": "electron-extensions",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Implementation of Chrome extension APIs for Electron",
   "keywords": [
     "electron",
@@ -37,26 +37,26 @@
     "lint-fix"
   ],
   "devDependencies": {
-    "@types/chrome": "0.0.91",
-    "@types/node": "13.1.2",
-    "@typescript-eslint/eslint-plugin": "^2.14.0",
-    "@typescript-eslint/parser": "^2.14.0",
-    "cross-env": "^6.0.3",
-    "electron": "^7.1.7",
+    "@types/chrome": "0.0.96",
+    "@types/node": "13.7.4",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
+    "cross-env": "^7.0.0",
+    "electron": "^8.0.1",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.9.0",
+    "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.2",
-    "mime-types": "^2.1.25",
+    "mime-types": "^2.1.26",
     "ncp": "^2.0.0",
     "prettier": "1.19.1",
-    "rimraf": "^3.0.0",
+    "rimraf": "^3.0.2",
     "ts-loader": "^6.2.1",
-    "typescript": "3.7.4",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10",
+    "typescript": "3.7.5",
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11",
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "file-type": "^12.4.2"
+    "file-type": "^14.1.2"
   }
 }

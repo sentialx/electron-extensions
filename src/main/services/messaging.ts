@@ -135,6 +135,8 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   });
 
   ipcMain.on(`api-runtime-reload-${ses.id}`, (e, extensionId: string) => {
+    if (!ses.extensions[extensionId]) return;
+
     const { backgroundPage } = ses.extensions[extensionId];
 
     if (backgroundPage) {
@@ -146,7 +148,16 @@ export const runMessagingService = (ses: ExtensibleSession) => {
   ipcMain.on(
     `api-runtime-connect-${ses.id}`,
     async (e, { extensionId, portId, sender, name }: any) => {
+      console.log(extensionId);
+      if (!ses.extensions[extensionId]) {
+        console.log(extensionId);
+        return;
+      }
+
       const { backgroundPage } = ses.extensions[extensionId];
+
+      if (!backgroundPage) return;
+
       const { webContents } = backgroundPage;
 
       if (e.sender.id !== webContents.id) {
@@ -161,7 +172,12 @@ export const runMessagingService = (ses: ExtensibleSession) => {
 
   ipcMain.on(`api-runtime-sendMessage-${ses.id}`, async (e, data: any) => {
     const { extensionId } = data;
+
+    if (!ses.extensions[extensionId]) return;
+
     const { backgroundPage } = ses.extensions[extensionId];
+
+    if (!backgroundPage) return;
 
     if (e.sender.id === backgroundPage.webContents.id) return;
 

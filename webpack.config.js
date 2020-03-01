@@ -10,7 +10,7 @@ const dev = process.env.ENV === 'dev';
 const config = {
   mode: dev ? 'development' : 'production',
 
-  devtool: dev ? 'eval-source-map' : 'source-map',
+  devtool: dev ? 'inline-source-map' : 'source-map',
 
   output: {
     path: resolve(__dirname, 'build'),

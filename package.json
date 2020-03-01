@@ -1,6 +1,6 @@
 {
   "name": "electron-extensions",
-  "version": "6.0.3",
+  "version": "6.0.4",
   "description": "Implementation of Chrome extension APIs for Electron",
   "keywords": [
     "electron",

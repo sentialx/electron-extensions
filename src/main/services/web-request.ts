@@ -132,14 +132,8 @@ export const runWebRequestService = (ses: ExtensibleSession) => {
   ipcMain.on('api-add-webRequest-listener', (e: any, data: any) => {
     const { id, name, filters } = data;
 
-    if (
-      !Object.keys(webRequest)
-        .filter(x => x.startsWith('on'))
-        .includes(name)
-    )
+    if (!Object.getOwnPropertyNames(webRequest.webRequest).includes(name))
       return;
-
-    console.log(name);
 
     eventListeners[id] = (details: any, callback: any) => {
       interceptRequest(

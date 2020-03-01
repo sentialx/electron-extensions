@@ -132,7 +132,9 @@ export const runWebRequestService = (ses: ExtensibleSession) => {
   ipcMain.on('api-add-webRequest-listener', (e: any, data: any) => {
     const { id, name, filters } = data;
 
-    if (!Object.getOwnPropertyNames(webRequest.webRequest).includes(name))
+    if (
+      !Object.getOwnPropertyNames((webRequest as any).webRequest).includes(name)
+    )
       return;
 
     eventListeners[id] = (details: any, callback: any) => {

@@ -33,7 +33,7 @@ export const getBackgroundPage = (
 export declare interface BackgroundPages {
   on(
     event: 'register',
-    listener: (tabId: number, windowId: number) => void,
+    listener: (webContents: Electron.WebContents) => void,
   ): this;
   on(event: string, listener: Function): this;
 }
@@ -48,6 +48,7 @@ export class BackgroundPages extends EventEmitter {
         webContents.getURL().startsWith('chrome-extension://')
       ) {
         this.register(webContents);
+        this.emit('register', webContents);
       }
     });
   }

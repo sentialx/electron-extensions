@@ -107,6 +107,15 @@ export const injectAPI = () => {
     },
   };
 
+  const webNavigation = {
+    onBeforeNavigate: new Event('webNavigation.onBeforeNavigate'),
+    onCompleted: new Event('webNavigation.onCompleted'),
+    onCreatedNavigationTarget: new Event(
+      'webNavigation.onCreatedNavigationTarget',
+    ),
+    onCommitted: new Event('webNavigation.onCommitted'),
+  };
+
   BROWSER_ACTION_METHODS.forEach((method) => {
     browserAction[method] = async (details: any, cb: any) => {
       if (details.imageData) {
@@ -126,6 +135,7 @@ export const injectAPI = () => {
     notifications,
     permissions,
     contextMenus,
+    webNavigation,
     privacy,
   });
 

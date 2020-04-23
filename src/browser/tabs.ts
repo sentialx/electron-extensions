@@ -3,10 +3,10 @@ import { ipcMain, BrowserWindow } from 'electron';
 import { promises } from 'fs';
 import { resolve } from 'path';
 import { sessionFromIpcEvent } from '../utils/session';
-import { sendToHosts } from './background-pages';
+import { sendToExtensionPages } from './background-pages';
 import { EventEmitter } from 'events';
 
-const getParentWindowOfTab = (tab: Tab) => {
+export const getParentWindowOfTab = (tab: Tab) => {
   switch (tab.getType()) {
     case 'window':
       return BrowserWindow.fromWebContents(tab);
@@ -19,13 +19,13 @@ const getParentWindowOfTab = (tab: Tab) => {
 
 // Events which can be registered only once
 interface ITabsEvents {
-  onCreateTabDetails: (tab: Tab, details: chrome.tabs.Tab) => void;
-  onCreateTab: (details: chrome.tabs.CreateProperties) => Promise<number>;
+  onCreateDetails: (tab: Tab, details: chrome.tabs.Tab) => void;
+  onCreate: (details: chrome.tabs.CreateProperties) => Promise<number>;
 }
 
 export declare interface TabsAPI {
   on(
-    event: 'update-tab',
+    event: 'updated',
     listener: (
       tabId: number,
       changeInfo: chrome.tabs.TabChangeInfo,
@@ -33,35 +33,40 @@ export declare interface TabsAPI {
     ) => void,
   ): this;
   on(
-    event: 'activate-tab',
+    event: 'activated',
     listener: (tabId: number, windowId: number) => void,
   ): this;
+  on(event: 'will-remove', listener: (tabId: number) => void): this;
   on(event: string, listener: Function): this;
 }
 
+type DetailsType = chrome.tabs.Tab & { [key: string]: string };
+
 export class TabsAPI extends EventEmitter implements ITabsEvents {
   private tabs: Set<Tab> = new Set();
-  private tabDetailsCache: Map<Tab, chrome.tabs.Tab> = new Map();
+  private detailsCache: Map<Tab, chrome.tabs.Tab> = new Map();
 
   constructor() {
     super();
 
     ipcMain.handle('tabs.get', (e, tabId) => this.get(tabId));
+    ipcMain.handle('tabs.getCurrent', this.getCurrent);
+    ipcMain.handle('tabs.getSelected', (e, winId) => this.getSelected(winId));
+    ipcMain.handle('tabs.getAllInWindow', (e, winId) =>
+      this.getAllInWindow(winId),
+    );
     ipcMain.handle('tabs.query', (e, info) => this.query(info));
     ipcMain.handle('tabs.update', (e, tabId, info) => this.update(tabId, info));
     ipcMain.handle('tabs.reload', (e, tabId, props) =>
       this.reload(tabId, props),
     );
     ipcMain.handle('tabs.create', (e, info) => this.create(info));
+    ipcMain.handle('tabs.remove', (e, ids) => this.remove(ids));
     ipcMain.handle('tabs.insertCSS', this.insertCSS);
   }
 
-  onCreateTabDetails: (tab: Tab, details: chrome.tabs.Tab) => void;
-  onCreateTab: (details: chrome.tabs.CreateProperties) => Promise<number>;
-
-  public getTabById(id: number) {
-    return Array.from(this.tabs).find((x) => x.id === id);
-  }
+  onCreateDetails: (tab: Tab, details: chrome.tabs.Tab) => void;
+  onCreate: (details: chrome.tabs.CreateProperties) => Promise<number>;
 
   public async update(
     tabId: number,
@@ -77,14 +82,14 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
 
     if (typeof muted === 'boolean') tab.setAudioMuted(muted);
 
-    if (active) this.activateTab(tabId);
+    if (active) this.activate(tabId);
 
-    this.emitOnUpdated(tab.id);
+    this.onUpdated(tab);
 
-    return this.createTabDetails(tab);
+    return this.createDetails(tab);
   }
 
-  public activateTab(tabId: number) {
+  public activate(tabId: number) {
     const tab = this.getTabById(tabId);
     if (!tab) return;
 
@@ -92,69 +97,52 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
 
     let activeChanged = true;
 
-    this.tabDetailsCache.forEach((tabInfo, cacheTab) => {
+    this.detailsCache.forEach((tabInfo, cacheTab) => {
       if (cacheTab.id === tabId) activeChanged = !tabInfo.active;
       tabInfo.active = tabId === cacheTab.id;
     });
 
     if (!activeChanged) return;
 
-    this.emit('activate-tab', tab.id, win.id);
-    sendToHosts('tabs.onActivated', {
+    this.emit('activated', tab.id, win.id);
+    sendToExtensionPages('tabs.onActivated', {
       tabId,
       windowId: win.id,
     });
   }
 
-  public emitOnUpdated(tabId: number) {
+  public get(tabId: number): chrome.tabs.Tab {
     const tab = this.getTabById(tabId);
-    if (!tab) return;
-
-    type DetailsType = chrome.tabs.Tab & { [key: string]: string };
-
-    const prevDetails: DetailsType = this.tabDetailsCache.get(tab) as any;
-    if (!prevDetails) return;
-
-    const details: DetailsType = this.createTabDetails(tab) as any;
-
-    const compareProps = [
-      'status',
-      'url',
-      'pinned',
-      'audible',
-      'discarded',
-      'autoDiscardable',
-      'mutedInfo',
-      'favIconUrl',
-      'title',
-    ];
-
-    let didUpdate = false;
-    const changeInfo: any = {};
-
-    for (const prop of compareProps) {
-      if (details[prop] !== prevDetails[prop]) {
-        changeInfo[prop] = details[prop];
-        didUpdate = true;
-      }
-    }
-
-    if (!didUpdate) return;
-
-    this.emit('update-tab', tab.id, changeInfo, details);
-    sendToHosts('tabs.onUpdated', tab.id, changeInfo, details);
+    return this.getDetails(tab);
   }
 
-  public get(tabId: number) {
-    const tab = this.getTabById(tabId);
-    return this.getTabDetails(tab);
+  public remove(tabIds: number | number[]) {
+    if (Array.isArray(tabIds)) {
+      tabIds.forEach((id) => this.emit('will-remove', id));
+      return;
+    }
+
+    this.emit('will-remove', tabIds);
+  }
+
+  // This API is deprecated, so we fallback it to chrome.tabs.query({ windowId })
+  public getAllInWindow(windowId: number) {
+    return this.query({ windowId });
+  }
+
+  // Deprecated, fallback to chrome.tabs.query
+  public getSelected(windowId: number) {
+    if (typeof windowId === 'number') {
+      return this.query({ windowId, active: true });
+    }
+    return this.query({ active: true });
   }
 
   public query(info: chrome.tabs.QueryInfo = {}) {
     const isSet = (value: any) => typeof value !== 'undefined';
 
-    const filteredTabs = Array.from(this.tabs)
-      .map(this.getTabDetails)
+    const tabs = Array.from(this.tabs)
+      .map(this.getDetails)
       .filter((tab) => {
         if (isSet(info.active) && info.active !== tab.active) return false;
         if (isSet(info.pinned) && info.pinned !== tab.pinned) return false;
@@ -191,26 +179,27 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
         return tab;
       });
 
-    return filteredTabs;
+    return tabs;
   }
 
-  public create = async (
+  public async create(
     details: chrome.tabs.CreateProperties,
-  ): Promise<chrome.tabs.Tab> => {
-    if (this.onCreateTab) {
-      const tabId = await this.onCreateTab(details);
-      const tab = this.getTabById(tabId);
-      return this.getTabDetails(tab);
+  ): Promise<chrome.tabs.Tab> {
+    if (!this.onCreate) {
+      throw new Error('No onCreate event handler');
     }
 
-    return this.getTabDetails(null);
-  };
+    const tabId = await this.onCreate(details);
+    const tab = this.getTabById(tabId);
+    return this.getDetails(tab);
+  }
 
   public observe(tab: Tab) {
     this.tabs.add(tab);
 
     tab.once('destroyed', () => {
       this.tabs.delete(tab);
+      this.onRemoved(tab);
     });
 
     const updateEvents: any[] = [
@@ -226,14 +215,16 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
 
     updateEvents.forEach((eventName) => {
       tab.on(eventName, () => {
-        this.emitOnUpdated(tab.id);
+        this.onUpdated(tab);
       });
     });
 
     tab.on('page-favicon-updated', (event, favicons) => {
       tab.favicon = favicons[0];
-      this.emitOnUpdated(tab.id);
+      this.onUpdated(tab);
     });
+
+    this.onCreated(tab);
   }
 
   public reload(
@@ -249,6 +240,17 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
       tab.reload();
     }
   }
+
+  public getTabById(id: number) {
+    return Array.from(this.tabs).find((x) => x.id === id);
+  }
+
+  private getCurrent = (e: Electron.IpcMainInvokeEvent) => {
+    const tab = this.getTabById(e.sender.id);
+    if (!tab) return null;
+
+    return this.getDetails(tab);
+  };
 
   private insertCSS = async (
     e: Electron.IpcMainEvent,
@@ -272,45 +274,108 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
     });
   };
 
-  private createTabDetails(tab: Tab) {
+  private createDetails(tab: Tab): chrome.tabs.Tab {
     const window = getParentWindowOfTab(tab);
     const [width = 0, height = 0] = window ? window.getSize() : [];
 
-    const details: chrome.tabs.Tab = {
+    const prevDetails: Partial<chrome.tabs.Tab> = this.detailsCache.get(
+      tab,
+    ) || {
+      id: tab.id,
       active: false,
-      audible: tab.isCurrentlyAudible(),
+      highlighted: false,
+      selected: false,
       autoDiscardable: true,
       discarded: false,
-      favIconUrl: tab.favicon || undefined,
-      height,
-      highlighted: false,
-      id: tab.id,
       incognito: false,
       index: 0,
-      mutedInfo: { muted: tab.audioMuted },
       pinned: false,
-      selected: false,
+    };
+
+    const details: chrome.tabs.Tab = {
+      ...(prevDetails as chrome.tabs.Tab),
+      audible: tab.isCurrentlyAudible(),
+      favIconUrl: tab.favicon || undefined,
+      height,
+      width,
+      mutedInfo: { muted: tab.audioMuted },
       status: tab.isLoading() ? 'loading' : 'complete',
       title: tab.getTitle(),
       url: tab.getURL(),
-      width,
       windowId: window ? window.id : -1,
     };
 
-    if (this.onCreateTabDetails) this.onCreateTabDetails(tab, details);
+    if (this.onCreateDetails) this.onCreateDetails(tab, details);
 
-    this.tabDetailsCache.set(tab, details);
+    this.detailsCache.set(tab, details);
 
     return details;
   }
 
-  private getTabDetails = (tab: Tab): chrome.tabs.Tab => {
-    if (!tab) return { id: -1 } as any;
+  private getDetails = (tab: Tab): chrome.tabs.Tab => {
+    if (!tab) return null;
 
-    if (this.tabDetailsCache.has(tab)) {
-      return this.tabDetailsCache.get(tab);
+    if (this.detailsCache.has(tab)) {
+      return this.detailsCache.get(tab);
     }
 
-    return this.createTabDetails(tab);
+    return this.createDetails(tab);
   };
+
+  private onUpdated(tab: Tab) {
+    if (!tab) return;
+
+    const prevDetails: DetailsType = this.detailsCache.get(tab) as any;
+    if (!prevDetails) return;
+
+    const details: DetailsType = this.createDetails(tab) as any;
+
+    const compareProps = [
+      'status',
+      'url',
+      'pinned',
+      'audible',
+      'discarded',
+      'autoDiscardable',
+      'mutedInfo',
+      'favIconUrl',
+      'title',
+    ];
+
+    let didUpdate = false;
+    const changeInfo: any = {};
+
+    for (const prop of compareProps) {
+      if (details[prop] !== prevDetails[prop]) {
+        changeInfo[prop] = details[prop];
+        didUpdate = true;
+      }
+    }
+
+    if (!didUpdate) return;
+
+    this.emit('updated', tab.id, changeInfo, details);
+    sendToExtensionPages('tabs.onUpdated', tab.id, changeInfo, details);
+  }
+
+  private onRemoved(tab: Tab) {
+    const details = this.detailsCache.has(tab)
+      ? this.detailsCache.get(tab)
+      : null;
+
+    this.detailsCache.delete(tab);
+
+    const windowId = details ? details.windowId : -1;
+    const win = getParentWindowOfTab(tab);
+
+    sendToExtensionPages('tabs.onRemoved', tab.id, {
+      windowId,
+      isWindowClosing: win ? win.isDestroyed() : false,
+    });
+  }
+
+  private onCreated(tab: Tab) {
+    const details = this.getDetails(tab);
+    sendToExtensionPages('tabs.onCreated', details);
+  }
 }

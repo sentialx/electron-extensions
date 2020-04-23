@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { sendToHosts } from './background-pages';
+import { sendToExtensionPages } from './background-pages';
 import { sessionFromIpcEvent } from '../utils/session';
 
 const ELECTRON_TO_CHROME_COOKIE_CHANGE_CAUSE: { [key: string]: string } = {
@@ -31,7 +31,7 @@ export class CookiesAPI {
           removed,
         };
 
-        sendToHosts('cookies.onChanged', details);
+        sendToExtensionPages('cookies.onChanged', details);
       },
     );
   }

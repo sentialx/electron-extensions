@@ -1,13 +1,14 @@
-import { session, app } from 'electron';
+import { session, app, webContents } from 'electron';
 import { parse } from 'url';
 import { EventEmitter } from 'events';
+import { PROTOCOL_SCHEME } from '../constants';
 
 const backgroundPages: Set<Electron.WebContents> = new Set();
 
-export const sendToHosts = (channel: string, ...args: any[]) => {
-  backgroundPages.forEach((webContents) => {
-    if (webContents.isDestroyed()) return;
-    webContents.send(channel, ...args);
+export const sendToExtensionPages = (channel: string, ...args: any[]) => {
+  webContents.getAllWebContents().forEach((wc) => {
+    if (wc.isDestroyed() || !wc.getURL().startsWith(PROTOCOL_SCHEME)) return;
+    wc.send(channel, ...args);
   });
 };
 
@@ -45,7 +46,7 @@ export class BackgroundPages extends EventEmitter {
       // if (webContents.getType() === 'backgroundPage') {
       if (
         webContents.getType() === 'remote' &&
-        webContents.getURL().startsWith('chrome-extension://')
+        webContents.getURL().startsWith(PROTOCOL_SCHEME)
       ) {
         this.register(webContents);
         this.emit('register', webContents);

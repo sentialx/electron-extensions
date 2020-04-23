@@ -1,10 +1,14 @@
 import { CookiesAPI } from './cookies';
 import { TabsAPI } from './tabs';
 import { BackgroundPages } from './background-pages';
+import { WindowsAPI } from './windows';
 
 export class Extensions {
+  public static instance = new Extensions();
+
   public tabs = new TabsAPI();
   public cookies = new CookiesAPI();
+  public windows = new WindowsAPI();
 
   public backgroundPages = new BackgroundPages();
 
@@ -20,4 +24,4 @@ export class Extensions {
   }
 }
 
-export const extensions = new Extensions();
+export const extensions = Extensions.instance;

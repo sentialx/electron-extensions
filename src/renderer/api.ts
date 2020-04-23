@@ -1,22 +1,28 @@
 import { IpcEvent } from '../models/ipc-event';
 import { ipcInvoker } from './ipc-invoker';
 import { BROWSER_ACTION_METHODS } from '../interfaces/browser-action';
+import { WINDOW_ID_NONE, WINDOW_ID_CURRENT, TAB_ID_NONE } from '../constants';
 
 declare const chrome: any;
 
 export const injectAPI = () => {
+  const manifest = chrome.runtime.getManifest();
+
   const tabs = {
     ...chrome.tabs,
+    TAB_ID_NONE,
     getCurrent: ipcInvoker('tabs.getCurrent'),
     create: ipcInvoker('tabs.create'),
     get: ipcInvoker('tabs.get'),
-    getAllInWindow: ipcInvoker('tabs.getAllInWindow'), // TODO
+    remove: ipcInvoker('tabs.remove'),
+    getAllInWindow: ipcInvoker('tabs.getAllInWindow'),
+    getSelected: ipcInvoker('tabs.getSelected'),
     insertCSS: ipcInvoker('tabs.insertCSS'),
     query: ipcInvoker('tabs.query'),
     reload: ipcInvoker('tabs.reload'),
     update: ipcInvoker('tabs.update'),
-    onCreated: new IpcEvent('tabs.onCreated'), // TODO
-    onRemoved: new IpcEvent('tabs.onRemoved'), // TODO
+    onCreated: new IpcEvent('tabs.onCreated'),
+    onRemoved: new IpcEvent('tabs.onRemoved'),
     onUpdated: new IpcEvent('tabs.onUpdated'),
     onActivated: new IpcEvent('tabs.onActivated'),
   };
@@ -31,27 +37,40 @@ export const injectAPI = () => {
 
   const windows = {
     ...(chrome.windows || {}),
-    get: ipcInvoker('windows.get', { noop: true }), // TODO
-    getAll: ipcInvoker('windows.getAll', { noop: true }), // TODO
-    create: ipcInvoker('windows.create', { noop: true }), // TODO
-    update: ipcInvoker('windows.update', { noop: true }), // TODO
+    WINDOW_ID_NONE,
+    WINDOW_ID_CURRENT,
+    get: ipcInvoker('windows.get'),
+    getAll: ipcInvoker('windows.getAll'),
+    getCurrent: ipcInvoker('windows.getCurrent'),
+    getLastFocused: ipcInvoker('windows.getLastFocused'), // TODO
+    create: ipcInvoker('windows.create'),
+    update: ipcInvoker('windows.update'), // TODO
+    remove: ipcInvoker('windows.remove'), // TODO
+    onCreated: new IpcEvent('windows.onCreated'),
+    onRemoved: new IpcEvent('windows.onRemoved'),
     onFocusChanged: new IpcEvent('windows.onFocusChanged'), // TODO
   };
 
   const extension = {
     ...chrome.extension,
-    isAllowedFileSchemeAccess: (cb: any) => {
-      if (cb) cb(false);
-    },
-    isAllowedIncognitoAccess: (cb: any) => {
-      if (cb) cb(false);
-    },
+    getViews: (): any[] => [],
+    isAllowedFileSchemeAccess: (cb: any) => cb && cb(false),
+    isAllowedIncognitoAccess: (cb: any) => cb && cb(false),
   };
 
   const notifications = {
+    create() {},
+    update() {},
+    clear() {},
+    getAll() {},
+    getPermissionLevel() {},
+    onClosed: new IpcEvent('notifications.onClosed'),
     onClicked: new IpcEvent('notifications.onClicked'),
-    create: () => {},
-    clear: () => {},
+    onButtonClicked: new IpcEvent('notifications.onButtonClicked'),
+    onPermissionLevelChanged: new IpcEvent(
+      'notifications.onPermissionLevelChanged',
+    ),
+    onShowSettings: new IpcEvent('notifications.onShowSettings'),
   };
 
   const permissions = {
@@ -59,7 +78,9 @@ export const injectAPI = () => {
     getAll: () => {},
   };
 
-  const browserAction: any = {};
+  const browserAction: any = {
+    onClicked: new IpcEvent('browserAction.onClicked'),
+  };
 
   BROWSER_ACTION_METHODS.forEach((method) => {
     browserAction[method] = async (details: any, cb: any) => {
@@ -72,11 +93,6 @@ export const injectAPI = () => {
     };
   });
 
-  const storage = {
-    ...chrome.storage,
-    sync: chrome.storage.local,
-  };
-
   Object.assign(chrome, {
     tabs,
     cookies,
@@ -84,7 +100,13 @@ export const injectAPI = () => {
     extension,
     notifications,
     permissions,
-    browserAction,
-    storage,
   });
+
+  if (manifest.browser_action) {
+    chrome.browserAction = browserAction;
+  }
+
+  if (chrome.storage) {
+    chrome.storage.sync = chrome.storage.local;
+  }
 };

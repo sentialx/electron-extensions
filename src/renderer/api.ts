@@ -58,6 +58,13 @@ export const injectAPI = () => {
     isAllowedIncognitoAccess: (cb: any) => cb && cb(false),
   };
 
+  const contextMenus = {
+    onClicked: new IpcEvent('contextMenus.onClicked'),
+    create: ipcInvoker('contextMenus.create', { noop: true }),
+    removeAll: ipcInvoker('contextMenus.removeAll', { noop: true }),
+    remove: ipcInvoker('contextMenus.remove', { noop: true }),
+  };
+
   const notifications = {
     create() {},
     update() {},
@@ -82,6 +89,24 @@ export const injectAPI = () => {
     onClicked: new IpcEvent('browserAction.onClicked'),
   };
 
+  class PolicyConfig {
+    get() {}
+    set() {}
+    clear() {}
+  }
+
+  const privacy = {
+    network: {
+      networkPredictionEnabled: new PolicyConfig(),
+      webRTCIPHandlingPolicy: new PolicyConfig(),
+      webRTCMultipleRoutesEnabled: new PolicyConfig(),
+      webRTCNonProxiedUdpEnabled: new PolicyConfig(),
+    },
+    websites: {
+      hyperlinkAuditingEnabled: new PolicyConfig(),
+    },
+  };
+
   BROWSER_ACTION_METHODS.forEach((method) => {
     browserAction[method] = async (details: any, cb: any) => {
       if (details.imageData) {
@@ -100,6 +125,8 @@ export const injectAPI = () => {
     extension,
     notifications,
     permissions,
+    contextMenus,
+    privacy,
   });
 
   if (manifest.browser_action) {

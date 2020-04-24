@@ -57,19 +57,7 @@ const mainConfig = getConfig({
   watch: dev,
 
   entry: {
-    main: './src/main',
-  },
-
-  plugins: [],
-});
-
-const rendererConfig = getConfig({
-  target: 'electron-main',
-
-  watch: dev,
-
-  entry: {
-    renderer: './src/renderer',
+    index: './src',
   },
 
   plugins: [],
@@ -81,7 +69,7 @@ const preloadsConfig = getConfig({
   watch: dev,
 
   entry: {
-    preload: './src/preload',
+    preload: './src/renderer',
   },
 
   plugins: [],
@@ -91,4 +79,4 @@ const preloadsConfig = getConfig({
   },
 });
 
-module.exports = [mainConfig, preloadsConfig, rendererConfig];
+module.exports = [mainConfig, preloadsConfig];

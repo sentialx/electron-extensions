@@ -2,21 +2,9 @@
   "name": "electron-extensions",
   "version": "6.0.4",
   "description": "Implementation of Chrome extension APIs for Electron",
-  "keywords": [
-    "electron",
-    "chrome",
-    "extensions",
-    "api",
-    "typescript"
-  ],
   "homepage": "https://github.com/sentialx/electron-extensions#readme",
-  "exports": {
-    "./": "./build/"
-  },
-  "author": {
-    "name": "Eryk Rakowski",
-    "email": "sentialx@gmail.com"
-  },
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sentialx/electron-extensions.git"
@@ -28,35 +16,26 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "lint-fix": "npm run lint -- --fix",
     "watch": "cross-env ENV='dev' webpack",
-    "build": "webpack && ncp LICENSE build/LICENSE && ncp README.md build/README.md && ncp package.json build/package.json",
-    "pub": "rimraf build && npm run build && ncp package.json build/package.json && cd build && npm publish",
-    "lnk": "npm run build && cd build && npm link",
-    "test": "electron test/main.js"
+    "build": "webpack"
   },
   "pre-commit": [
     "lint-fix"
   ],
   "devDependencies": {
-    "@types/chrome": "0.0.96",
-    "@types/node": "13.7.4",
-    "@typescript-eslint/eslint-plugin": "^2.20.0",
-    "@typescript-eslint/parser": "^2.20.0",
-    "cross-env": "^7.0.0",
-    "electron": "^8.0.1",
+    "@types/chrome": "0.0.104",
+    "@types/node": "13.11.1",
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "cross-env": "^7.0.2",
+    "electron": "^9.0.0-beta.16",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.0",
+    "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.2",
-    "mime-types": "^2.1.26",
-    "ncp": "^2.0.0",
-    "prettier": "1.19.1",
-    "rimraf": "^3.0.2",
-    "ts-loader": "^6.2.1",
-    "typescript": "3.7.5",
-    "webpack": "^4.41.6",
+    "prettier": "2.0.4",
+    "ts-loader": "^6.2.2",
+    "typescript": "3.8.3",
+    "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11",
     "webpack-merge": "^4.2.2"
-  },
-  "dependencies": {
-    "file-type": "^14.1.2"
   }
 }

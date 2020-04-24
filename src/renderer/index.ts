@@ -1,22 +1,9 @@
-import { ipcRenderer } from 'electron';
-import { IpcExtension } from '../models/ipc-extension';
+import { injectAPI } from './api';
+import { PROTOCOL_SCHEME } from '../constants';
 
-const webContentsId = ipcRenderer.sendSync(`get-webcontents-id`);
-
-export class ExtensionsRenderer {
-  public browserAction = {
-    onClicked: (extensionId: string, tabId: number) => {
-      ipcRenderer.send(
-        `api-browserAction-onClicked-${webContentsId}`,
-        extensionId,
-        tabId,
-      );
-    },
-  };
-
-  public getExtensions(): { [key: string]: IpcExtension } {
-    return ipcRenderer.sendSync(`get-extensions-${webContentsId}`);
-  }
-}
-
-export const extensionsRenderer = new ExtensionsRenderer();
+(async () => {
+  if (!location.href.startsWith(PROTOCOL_SCHEME)) return;
+  (process as any).once('document-start', () => {
+    injectAPI();
+  });
+})();

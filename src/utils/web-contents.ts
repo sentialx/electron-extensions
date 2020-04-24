@@ -1,30 +1,6 @@
-import { WebContents, webContents } from 'electron';
-import { ExtensibleSession } from '../main';
+import { PROTOCOL_SCHEME } from '../constants';
 
-export const webContentsToTab = (
-  wc: WebContents,
-  ses: ExtensibleSession,
-): chrome.tabs.Tab => ({
-  id: wc.id,
-  index: wc.id,
-  windowId: wc.hostWebContents ? wc.hostWebContents.id : wc.id,
-  highlighted: wc.id === ses.activeTab,
-  active: wc.id === ses.activeTab,
-  selected: wc.id === ses.activeTab,
-  pinned: false,
-  discarded: false,
-  autoDiscardable: false,
-  url: wc.getURL(),
-  title: wc.getTitle(),
-  incognito: false,
-  audible: wc.isCurrentlyAudible(),
-});
-
-export const getAllWebContentsInSession = (ses: Electron.Session) => {
-  return webContents.getAllWebContents().filter(x => x.session === ses);
-};
-
-export const webContentsValid = (webContents: WebContents) => {
-  const type = webContents.getType();
-  return type === 'window' || type === 'webview' || type === 'browserView';
-};
+// TODO: https://github.com/electron/electron/pull/22217
+export const isBackgroundPage = (wc: Electron.WebContents) =>
+  // TODO: wc.getType() === 'backgroundPage';
+  wc.getType() === 'remote' && wc.getURL().startsWith(PROTOCOL_SCHEME);

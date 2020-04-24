@@ -2,7 +2,6 @@ import { ipcMain, BrowserWindow } from 'electron';
 import { EventEmitter } from 'events';
 import { Extensions } from '.';
 import { isBackgroundPage } from '../utils/web-contents';
-import { getParentWindowOfTab } from './tabs';
 import { WINDOW_ID_CURRENT } from '../constants';
 import { sendToExtensionPages } from './background-pages';
 
@@ -50,6 +49,10 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
     this.onCreated(window);
   }
 
+  public getWindowById(id: number) {
+    return Array.from(this.windows).find((x) => x.id === id);
+  }
+
   public async create(
     details: chrome.windows.CreateData,
   ): Promise<chrome.windows.Window> {
@@ -89,7 +92,8 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
       return null;
     }
 
-    const win = getParentWindowOfTab(tab);
+    const tabDetails = Extensions.instance.tabs.getDetails(tab);
+    const win = this.getWindowById(tabDetails.windowId);
 
     return this.getDetailsMatchingGetInfo(win, getInfo);
   };
@@ -158,10 +162,6 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
 
     return details;
   };
-
-  private getWindowById(id: number) {
-    return Array.from(this.windows).find((x) => x.id === id);
-  }
 
   private onRemoved(win: BrowserWindow) {
     sendToExtensionPages('windows.onRemoved', {

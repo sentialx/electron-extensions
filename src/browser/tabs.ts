@@ -5,6 +5,7 @@ import { resolve } from 'path';
 import { sessionFromIpcEvent } from '../utils/session';
 import { sendToExtensionPages } from './background-pages';
 import { EventEmitter } from 'events';
+import { Extensions } from '.';
 
 export const getParentWindowOfTab = (tab: Tab) => {
   switch (tab.getType()) {
@@ -34,7 +35,11 @@ export declare interface TabsAPI {
   ): this;
   on(
     event: 'activated',
-    listener: (tabId: number, windowId: number) => void,
+    listener: (
+      tabId: number,
+      windowId: number,
+      ...additionalArgs: any[]
+    ) => void,
   ): this;
   on(event: 'will-remove', listener: (tabId: number) => void): this;
   on(event: string, listener: Function): this;
@@ -89,25 +94,24 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
     return this.createDetails(tab);
   }
 
-  public activate(tabId: number) {
+  public activate(tabId: number, ...additionalArgs: any[]) {
     const tab = this.getTabById(tabId);
     if (!tab) return;
 
-    const win = getParentWindowOfTab(tab);
+    const details = this.getDetails(tab);
 
-    let activeChanged = true;
+    const activeChanged = !details.active;
 
     this.detailsCache.forEach((tabInfo, cacheTab) => {
-      if (cacheTab.id === tabId) activeChanged = !tabInfo.active;
       tabInfo.active = tabId === cacheTab.id;
     });
 
     if (!activeChanged) return;
 
-    this.emit('activated', tab.id, win.id);
+    this.emit('activated', tab.id, details.windowId, ...additionalArgs);
     sendToExtensionPages('tabs.onActivated', {
       tabId,
-      windowId: win.id,
+      windowId: details.windowId,
     });
   }
 
@@ -245,6 +249,16 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
     return Array.from(this.tabs).find((x) => x.id === id);
   }
 
+  public getDetails = (tab: Tab): chrome.tabs.Tab => {
+    if (!tab) return null;
+
+    if (this.detailsCache.has(tab)) {
+      return this.detailsCache.get(tab);
+    }
+
+    return this.createDetails(tab);
+  };
+
   private getCurrent = (e: Electron.IpcMainInvokeEvent) => {
     const tab = this.getTabById(e.sender.id);
     if (!tab) return null;
@@ -312,16 +326,6 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
     return details;
   }
 
-  private getDetails = (tab: Tab): chrome.tabs.Tab => {
-    if (!tab) return null;
-
-    if (this.detailsCache.has(tab)) {
-      return this.detailsCache.get(tab);
-    }
-
-    return this.createDetails(tab);
-  };
-
   private onUpdated(tab: Tab) {
     if (!tab) return;
 
@@ -366,7 +370,7 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
     this.detailsCache.delete(tab);
 
     const windowId = details ? details.windowId : -1;
-    const win = getParentWindowOfTab(tab);
+    const win = Extensions.instance.windows.getWindowById(windowId);
 
     sendToExtensionPages('tabs.onRemoved', tab.id, {
       windowId,

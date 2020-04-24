@@ -25,3 +25,5 @@ export class Extensions {
 }
 
 export const extensions = Extensions.instance;
+
+export * from '../utils/session';

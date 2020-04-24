@@ -86,7 +86,9 @@ export const hookExtensionWebRequestBypass = (session: Electron.Session) => {
     details.responseHeaders['access-control-allow-credentials'] = ['true'];
 
     if (requestIsForExtension(details) || allowedOriginIsWildcard) {
-      details.responseHeaders['access-control-allow-origin'] = ['*'];
+      details.responseHeaders['access-control-allow-origin'] = [
+        requestsOrigins.get(details.id),
+      ];
     }
 
     requestsOrigins.delete(details.id);

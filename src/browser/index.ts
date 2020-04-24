@@ -23,7 +23,7 @@ export class Extensions {
     }
     session.setPreloads(session.getPreloads().concat(preloadPath));
 
-    //hookExtensionWebRequestBypass(session);
+    hookExtensionWebRequestBypass(session);
     this.cookies.observeSession(session);
   }
 }

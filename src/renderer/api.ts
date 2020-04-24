@@ -29,6 +29,7 @@ export const injectAPI = () => {
   };
 
   const cookies = {
+    ...chrome.cookies,
     get: ipcInvoker('cookies.get'),
     getAll: ipcInvoker('cookies.getAll'),
     remove: ipcInvoker('cookies.remove'),
@@ -37,7 +38,7 @@ export const injectAPI = () => {
   };
 
   const windows = {
-    ...(chrome.windows || {}),
+    ...chrome.windows,
     WINDOW_ID_NONE,
     WINDOW_ID_CURRENT,
     get: ipcInvoker('windows.get'),
@@ -60,6 +61,7 @@ export const injectAPI = () => {
   };
 
   const contextMenus = {
+    ...chrome.contextMenus,
     onClicked: new IpcEvent('contextMenus.onClicked'),
     create: ipcInvoker('contextMenus.create', { noop: true }),
     removeAll: ipcInvoker('contextMenus.removeAll', { noop: true }),
@@ -67,6 +69,7 @@ export const injectAPI = () => {
   };
 
   const notifications = {
+    ...chrome.notifications,
     create() {},
     update() {},
     clear() {},
@@ -82,11 +85,13 @@ export const injectAPI = () => {
   };
 
   const permissions = {
+    ...chrome.permissions,
     onAdded: new IpcEvent('permissions.onAdded'),
     getAll: () => {},
   };
 
   const browserAction: any = {
+    ...chrome.browserAction,
     onClicked: new IpcEvent('browserAction.onClicked'),
   };
 
@@ -97,6 +102,7 @@ export const injectAPI = () => {
   }
 
   const privacy = {
+    ...chrome.privacy,
     network: {
       networkPredictionEnabled: new PolicyConfig(),
       webRTCIPHandlingPolicy: new PolicyConfig(),
@@ -109,6 +115,7 @@ export const injectAPI = () => {
   };
 
   const webRequest = {
+    ...chrome.webRequest,
     ResourceType: {
       CSP_REPORT: 'csp_report',
       FONT: 'font',
@@ -137,6 +144,7 @@ export const injectAPI = () => {
   };
 
   const webNavigation = {
+    ...chrome.webNavigation,
     onBeforeNavigate: new IpcEvent('webNavigation.onBeforeNavigate'),
     onCompleted: new IpcEvent('webNavigation.onCompleted'),
     onCreatedNavigationTarget: new IpcEvent(
@@ -176,4 +184,6 @@ export const injectAPI = () => {
   if (chrome.storage) {
     chrome.storage.sync = chrome.storage.local;
   }
+
+  Object.freeze(chrome);
 };

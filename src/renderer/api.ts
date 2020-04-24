@@ -2,6 +2,7 @@ import { IpcEvent } from '../models/ipc-event';
 import { ipcInvoker } from './ipc-invoker';
 import { BROWSER_ACTION_METHODS } from '../interfaces/browser-action';
 import { WINDOW_ID_NONE, WINDOW_ID_CURRENT, TAB_ID_NONE } from '../constants';
+import { WebRequestEvent } from '../models/web-request-event';
 
 declare const chrome: any;
 
@@ -107,13 +108,41 @@ export const injectAPI = () => {
     },
   };
 
+  const webRequest = {
+    ResourceType: {
+      CSP_REPORT: 'csp_report',
+      FONT: 'font',
+      IMAGE: 'image',
+      MAIN_FRAME: 'main_frame',
+      MEDIA: 'media',
+      OBJECT: 'object',
+      OTHER: 'other',
+      PING: 'ping',
+      SCRIPT: 'script',
+      STYLESHEET: 'stylesheet',
+      SUB_FRAME: 'sub_frame',
+      WEBSOCKET: 'websocket',
+      XMLHTTPREQUEST: 'xmlhttprequest',
+    },
+
+    onBeforeRequest: new WebRequestEvent('onBeforeRequest'),
+    onBeforeSendHeaders: new WebRequestEvent('onBeforeSendHeaders'),
+    onHeadersReceived: new WebRequestEvent('onHeadersReceived'),
+    onSendHeaders: new WebRequestEvent('onSendHeaders'),
+    onResponseStarted: new WebRequestEvent('onResponseStarted'),
+    onBeforeRedirect: new WebRequestEvent('onBeforeRedirect'),
+    onCompleted: new WebRequestEvent('onCompleted'),
+    onErrorOccurred: new WebRequestEvent('onErrorOccurred'),
+    onAuthRequired: new WebRequestEvent('onAuthRequired'),
+  };
+
   const webNavigation = {
-    onBeforeNavigate: new Event('webNavigation.onBeforeNavigate'),
-    onCompleted: new Event('webNavigation.onCompleted'),
-    onCreatedNavigationTarget: new Event(
+    onBeforeNavigate: new IpcEvent('webNavigation.onBeforeNavigate'),
+    onCompleted: new IpcEvent('webNavigation.onCompleted'),
+    onCreatedNavigationTarget: new IpcEvent(
       'webNavigation.onCreatedNavigationTarget',
     ),
-    onCommitted: new Event('webNavigation.onCommitted'),
+    onCommitted: new IpcEvent('webNavigation.onCommitted'),
   };
 
   BROWSER_ACTION_METHODS.forEach((method) => {
@@ -136,6 +165,7 @@ export const injectAPI = () => {
     permissions,
     contextMenus,
     webNavigation,
+    webRequest,
     privacy,
   });
 

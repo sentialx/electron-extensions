@@ -17,7 +17,7 @@
     "lint-fix": "npm run lint -- --fix",
     "watch": "cross-env ENV='dev' webpack",
     "build": "webpack",
-    "prepare": "npm run build"
+    "install": "npm run build"
   },
   "pre-commit": [
     "lint-fix"

@@ -22,6 +22,12 @@
   "pre-commit": [
     "lint-fix"
   ],
+  "files": [
+    "LICENSE",
+    "preload.js",
+    "build",
+    "README.md"
+  ],
   "devDependencies": {
     "@types/chrome": "0.0.104",
     "@types/node": "13.13.2",

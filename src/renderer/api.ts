@@ -44,13 +44,13 @@ export const injectAPI = () => {
     get: ipcInvoker('windows.get'),
     getAll: ipcInvoker('windows.getAll'),
     getCurrent: ipcInvoker('windows.getCurrent'),
-    getLastFocused: ipcInvoker('windows.getLastFocused'), // TODO
+    getLastFocused: ipcInvoker('windows.getLastFocused'),
     create: ipcInvoker('windows.create'),
-    update: ipcInvoker('windows.update'), // TODO
-    remove: ipcInvoker('windows.remove'), // TODO
+    update: ipcInvoker('windows.update'),
+    remove: ipcInvoker('windows.remove'),
     onCreated: new IpcEvent('windows.onCreated'),
     onRemoved: new IpcEvent('windows.onRemoved'),
-    onFocusChanged: new IpcEvent('windows.onFocusChanged'), // TODO
+    onFocusChanged: new IpcEvent('windows.onFocusChanged'),
   };
 
   const extension = {

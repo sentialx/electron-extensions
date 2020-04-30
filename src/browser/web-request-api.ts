@@ -6,6 +6,7 @@ import extendElectronWebRequest from '../utils/web-request';
 const clearCacheOnNavigation = () => {
   webContents.getAllWebContents().forEach((wc) => {
     const onNavigation = true;
+    // TODO(sentialx): receive clear-cache in renderer
     wc.send('clear-cache', onNavigation);
   });
 };
@@ -49,6 +50,7 @@ const electronToChromeDetails = (details: any) => {
 
 export class WebRequestAPI {
   constructor() {
+    // TODO(sentialx): send clear-cache from renderer
     ipcMain.on('clear-cache', () => {
       clearCacheOnNavigation();
     });

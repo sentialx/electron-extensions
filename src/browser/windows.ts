@@ -11,13 +11,23 @@ interface IWindowsEvents {
     window: BrowserWindow,
     details: chrome.windows.Window,
   ) => void;
+  onBeforeFocusNextZOrder: (windowId: number) => number;
   onCreate: (details: chrome.windows.CreateData) => Promise<number>;
+}
+
+export declare interface WindowsAPI {
+  on(event: 'focused', listener: (windowId: number) => void): this;
+  on(event: 'created', listener: (window: chrome.windows.Window) => void): this;
+  on(event: 'will-remove', listener: (windowId: number) => void): this;
+  on(event: string, listener: Function): this;
 }
 
 export class WindowsAPI extends EventEmitter implements IWindowsEvents {
   private windows: Set<BrowserWindow> = new Set();
 
   private detailsCache: Map<BrowserWindow, chrome.windows.Window> = new Map();
+
+  private lastFocused: BrowserWindow;
 
   constructor() {
     super();
@@ -30,13 +40,77 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
     );
     ipcMain.handle('windows.getCurrent', this.getCurrent);
     ipcMain.handle('windows.getAll', (e, details) => this.getAll(details));
+    ipcMain.handle('windows.update', (e, id, details) =>
+      this.update(id, details),
+    );
+    ipcMain.handle('windows.getLastFocused', (e, details) =>
+      this.getLastFocused(details),
+    );
   }
 
+  onBeforeFocusNextZOrder: (windowId: number) => number;
   onCreateDetails: (
     window: BrowserWindow,
     details: chrome.windows.Window,
   ) => void;
   onCreate: (details: chrome.windows.CreateData) => Promise<number>;
+
+  public update(windowId: number, updateInfo: chrome.windows.UpdateInfo) {
+    const win = this.getWindowById(windowId);
+    if (!win) return null;
+
+    const { left, top, width, height, state } = updateInfo;
+
+    if (!['minimized', 'maximized', 'fullscreen'].includes(state)) {
+      const bounds = win.getBounds();
+      const newBounds: Electron.Rectangle = { ...bounds };
+
+      if (!isNaN(left)) newBounds.x = Math.floor(left);
+      if (!isNaN(top)) newBounds.y = Math.floor(top);
+      if (!isNaN(width) && width > 0) newBounds.width = Math.floor(width);
+      if (!isNaN(height) && height > 0) newBounds.height = Math.floor(height);
+
+      if (bounds !== newBounds) {
+        win.setBounds(newBounds);
+      }
+    }
+
+    if (typeof updateInfo.drawAttention === 'boolean') {
+      win.flashFrame(updateInfo.drawAttention && !win.isFocused());
+    }
+
+    if (typeof updateInfo.focused === 'boolean') {
+      if (updateInfo.focused) {
+        if (state !== 'minimized') win.focus();
+      } else if (
+        this.onBeforeFocusNextZOrder &&
+        !['fullscreen', 'maximized'].includes(state)
+      ) {
+        const windowIdToFocus = this.onBeforeFocusNextZOrder(windowId);
+        this.focus(windowIdToFocus);
+      }
+    }
+
+    if (state === 'minimized') win.minimize();
+    else if (state === 'maximized') win.maximize();
+    else if (state === 'fullscreen') win.setFullScreen(true);
+    else if (state === 'normal') {
+      if (win.isFullScreen()) win.setFullScreen(false);
+      if (win.isMinimized()) win.restore();
+      if (win.isMaximized()) win.unmaximize();
+    }
+
+    return this.createDetails(win);
+  }
+
+  public focus(windowId: number) {
+    const win = this.getWindowById(windowId);
+    win.focus();
+  }
+
+  public remove(windowId: number) {
+    this.emit('will-remove', windowId);
+  }
 
   public observe(window: BrowserWindow) {
     this.windows.add(window);
@@ -44,6 +118,10 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
     window.once('closed', () => {
       this.windows.delete(window);
       this.onRemoved(window);
+    });
+
+    window.on('focus', () => {
+      this.lastFocused = window;
     });
 
     this.onCreated(window);
@@ -65,6 +143,12 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
     return this.getDetails(win);
   }
 
+  public getLastFocused(
+    getInfo: chrome.windows.GetInfo,
+  ): chrome.windows.Window {
+    return this.getDetailsMatchingGetInfo(this.lastFocused, getInfo);
+  }
+
   public get(
     id: number,
     getInfo: chrome.windows.GetInfo,
@@ -82,12 +166,12 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
   private getCurrent = (
     event: Electron.IpcMainInvokeEvent,
     getInfo: chrome.windows.GetInfo,
-  ): Partial<chrome.windows.Window> => {
+  ): chrome.windows.Window => {
     const tab = Extensions.instance.tabs.getTabById(event.sender.id);
 
     if (!tab) {
       if (isBackgroundPage(event.sender)) {
-        // TODO(sentialx): return last focused window.
+        return this.getDetailsMatchingGetInfo(this.lastFocused, getInfo);
       }
       return null;
     }
@@ -127,7 +211,7 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
     return details;
   }
 
-  private getDetails = (win: BrowserWindow): chrome.windows.Window => {
+  private getDetails(win: BrowserWindow): chrome.windows.Window {
     if (!win) return null;
 
     if (this.detailsCache.has(win)) {
@@ -135,7 +219,7 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
     }
 
     return this.createDetails(win);
-  };
+  }
 
   private getDetailsMatchingGetInfo = (
     win: BrowserWindow,
@@ -164,6 +248,7 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
   };
 
   private onRemoved(win: BrowserWindow) {
+    this.emit('will-remove', win.id);
     sendToExtensionPages('windows.onRemoved', {
       windowId: win.id,
     });
@@ -171,6 +256,7 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
 
   private onCreated(win: BrowserWindow) {
     const details = this.getDetails(win);
+    this.emit('created', details);
     sendToExtensionPages('windows.onCreated', details);
   }
 }

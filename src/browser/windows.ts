@@ -145,7 +145,7 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
 
     const details = this.getDetails(win);
 
-    let { windowTypes } = getInfo;
+    let windowTypes = getInfo?.windowTypes;
 
     if (!Array.isArray(windowTypes)) {
       windowTypes = ['normal', 'popup'];
@@ -153,7 +153,7 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
 
     if (!windowTypes.includes(details.type)) return null;
 
-    if (getInfo.populate === true) {
+    if (getInfo?.populate === true) {
       return {
         ...details,
         tabs: Extensions.instance.tabs.query({ windowId: win.id }),

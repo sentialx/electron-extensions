@@ -1,6 +1,6 @@
 {
   "name": "electron-extensions",
-  "version": "7.0.0-beta.1",
+  "version": "7.0.0-beta.2",
   "description": "Implementation of Chrome extension APIs for Electron",
   "homepage": "https://github.com/sentialx/electron-extensions#readme",
   "main": "./build/index.js",

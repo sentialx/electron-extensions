@@ -4,6 +4,7 @@ import { BackgroundPages } from './background-pages';
 import { WindowsAPI } from './windows';
 import { hookExtensionWebRequestBypass } from './web-request-electron';
 import { WebRequestAPI } from './web-request-api';
+import { BrowserActionAPI } from './browser-action';
 
 export class Extensions {
   public static instance = new Extensions();
@@ -12,6 +13,7 @@ export class Extensions {
   public cookies = new CookiesAPI();
   public windows = new WindowsAPI();
   public webRequest = new WebRequestAPI();
+  public browserAction = new BrowserActionAPI();
 
   public backgroundPages = new BackgroundPages();
 

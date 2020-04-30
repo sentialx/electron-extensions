@@ -5,12 +5,13 @@ const extensionId = chrome?.runtime?.id;
 interface IInvokeOptions {
   noop?: boolean;
   noopValue?: any;
-  includeExtensionId?: boolean;
+  includeId?: boolean;
+  serialize?: (...args: any[]) => any[];
 }
 
 export const ipcInvoker = (
   name: string,
-  { noop, noopValue, includeExtensionId }: IInvokeOptions = {},
+  { noop, noopValue, includeId, serialize }: IInvokeOptions = {},
 ) => async (...args: any[]) => {
   const callback =
     typeof args[args.length - 1] === 'function' ? args.pop() : undefined;
@@ -20,7 +21,11 @@ export const ipcInvoker = (
     return noopValue;
   }
 
-  if (includeExtensionId) {
+  if (serialize) {
+    args = serialize(...args);
+  }
+
+  if (includeId) {
     args = [extensionId, ...args];
   }
 

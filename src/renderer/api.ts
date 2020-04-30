@@ -1,10 +1,16 @@
 import { IpcEvent } from '../models/ipc-event';
 import { ipcInvoker } from './ipc-invoker';
-import { BROWSER_ACTION_METHODS } from '../interfaces/browser-action';
 import { WINDOW_ID_NONE, WINDOW_ID_CURRENT, TAB_ID_NONE } from '../constants';
 import { WebRequestEvent } from '../models/web-request-event';
+import { imageData2base64 } from '../utils/images';
 
 declare const chrome: any;
+
+class PolicyConfig {
+  get() {}
+  set() {}
+  clear() {}
+}
 
 export const injectAPI = () => {
   const manifest = chrome.runtime.getManifest();
@@ -90,17 +96,6 @@ export const injectAPI = () => {
     getAll: () => {},
   };
 
-  const browserAction: any = {
-    ...chrome.browserAction,
-    onClicked: new IpcEvent('browserAction.onClicked'),
-  };
-
-  class PolicyConfig {
-    get() {}
-    set() {}
-    clear() {}
-  }
-
   const privacy = {
     ...chrome.privacy,
     network: {
@@ -112,6 +107,46 @@ export const injectAPI = () => {
     websites: {
       hyperlinkAuditingEnabled: new PolicyConfig(),
     },
+  };
+
+  const browserAction = {
+    ...chrome.browserAction,
+    setBadgeBackgroundColor: ipcInvoker(
+      'browserAction.setBadgeBackgroundColor',
+      {
+        includeId: true,
+      },
+    ),
+    setBadgeText: ipcInvoker('browserAction.setBadgeText', {
+      includeId: true,
+    }),
+    setIcon: ipcInvoker('browserAction.setIcon', {
+      includeId: true,
+      serialize: (details: any) => {
+        if (details.imageData) {
+          if (details.imageData instanceof ImageData) {
+            details.imageData = imageData2base64(details.imageData);
+          } else {
+            details.imageData = Object.entries(details.imageData).reduce(
+              (obj: any, pair: any) => {
+                obj[pair[0]] = imageData2base64(pair[1]);
+                return obj;
+              },
+              {},
+            );
+          }
+        }
+
+        return [details];
+      },
+    }),
+    setTitle: ipcInvoker('browserAction.setTitle', {
+      includeId: true,
+    }),
+    setPopup: ipcInvoker('browserAction.setPopup', {
+      includeId: true,
+    }),
+    onClicked: new IpcEvent('browserAction.onClicked'),
   };
 
   const webRequest = {
@@ -152,17 +187,6 @@ export const injectAPI = () => {
     ),
     onCommitted: new IpcEvent('webNavigation.onCommitted'),
   };
-
-  BROWSER_ACTION_METHODS.forEach((method) => {
-    browserAction[method] = async (details: any, cb: any) => {
-      if (details.imageData) {
-        return;
-        // TODO(sentialx): convert to buffer
-        details.imageData.data = Buffer.from(details.imageData.data);
-      }
-      if (cb) cb();
-    };
-  });
 
   Object.assign(chrome, {
     tabs,

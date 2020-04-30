@@ -1,6 +1,6 @@
-import { ipcMain } from 'electron';
-import { sendToExtensionPages } from './background-pages';
 import { sessionFromIpcEvent } from '../utils/session';
+import { HandlerFactory } from './handler-factory';
+import { sendToExtensionPages } from './background-pages';
 
 const ELECTRON_TO_CHROME_COOKIE_CHANGE_CAUSE: { [key: string]: string } = {
   explicit: 'explicit',
@@ -12,10 +12,12 @@ const ELECTRON_TO_CHROME_COOKIE_CHANGE_CAUSE: { [key: string]: string } = {
 
 export class CookiesAPI {
   constructor() {
-    ipcMain.handle('cookies.get', this.get);
-    ipcMain.handle('cookies.getAll', this.getAll);
-    ipcMain.handle('cookies.set', this.set);
-    ipcMain.handle('cookies.remove', this.remove);
+    const handler = HandlerFactory.create('cookies', this);
+
+    handler('get', this.get, true);
+    handler('getAll', this.getAll, true);
+    handler('set', this.set, true);
+    handler('remove', this.remove, true);
   }
 
   public observeSession(ses: Electron.Session) {
@@ -52,10 +54,10 @@ export class CookiesAPI {
     };
   }
 
-  private getAll = async (
+  private async getAll(
     e: Electron.IpcMainEvent,
     details: chrome.cookies.Cookie & { url: string },
-  ) => {
+  ) {
     const { url, name, domain, path, secure, session } = details;
 
     const cookies = await sessionFromIpcEvent(e).cookies.get({
@@ -72,12 +74,9 @@ export class CookiesAPI {
     }
 
     return [];
-  };
+  }
 
-  private get = async (
-    e: Electron.IpcMainEvent,
-    details: chrome.cookies.Details,
-  ) => {
+  private async get(e: Electron.IpcMainEvent, details: chrome.cookies.Details) {
     const { url, name } = details;
 
     const cookies = await sessionFromIpcEvent(e).cookies.get({ url, name });
@@ -88,12 +87,12 @@ export class CookiesAPI {
     }
 
     return null;
-  };
+  }
 
-  private set = async (
+  private async set(
     e: Electron.IpcMainEvent,
     details: { url: string } & Partial<chrome.cookies.Cookie>,
-  ): Promise<Partial<chrome.cookies.Cookie>> => {
+  ): Promise<Partial<chrome.cookies.Cookie>> {
     const {
       url,
       name,
@@ -126,15 +125,15 @@ export class CookiesAPI {
       expirationDate,
       storeId: null,
     };
-  };
+  }
 
-  private remove = async (
+  private async remove(
     e: Electron.IpcMainEvent,
     details: chrome.cookies.Details,
-  ): Promise<Partial<chrome.cookies.Cookie & { url: string }>> => {
+  ): Promise<Partial<chrome.cookies.Cookie & { url: string }>> {
     const { url, name } = details;
 
     await sessionFromIpcEvent(e).cookies.remove(url, name);
     return { url, name, storeId: null };
-  };
+  }
 }

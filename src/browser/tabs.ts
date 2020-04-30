@@ -1,11 +1,12 @@
 import { Tab } from '../interfaces/tabs';
-import { ipcMain, BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 import { promises } from 'fs';
 import { resolve } from 'path';
 import { sessionFromIpcEvent } from '../utils/session';
 import { sendToExtensionPages } from './background-pages';
 import { EventEmitter } from 'events';
 import { Extensions } from '.';
+import { HandlerFactory } from './handler-factory';
 
 export const getParentWindowOfTab = (tab: Tab) => {
   switch (tab.getType()) {
@@ -54,20 +55,19 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
   constructor() {
     super();
 
-    ipcMain.handle('tabs.get', (e, tabId) => this.get(tabId));
-    ipcMain.handle('tabs.getCurrent', this.getCurrent);
-    ipcMain.handle('tabs.getSelected', (e, winId) => this.getSelected(winId));
-    ipcMain.handle('tabs.getAllInWindow', (e, winId) =>
-      this.getAllInWindow(winId),
-    );
-    ipcMain.handle('tabs.query', (e, info) => this.query(info));
-    ipcMain.handle('tabs.update', (e, tabId, info) => this.update(tabId, info));
-    ipcMain.handle('tabs.reload', (e, tabId, props) =>
-      this.reload(tabId, props),
-    );
-    ipcMain.handle('tabs.create', (e, info) => this.create(info));
-    ipcMain.handle('tabs.remove', (e, ids) => this.remove(ids));
-    ipcMain.handle('tabs.insertCSS', this.insertCSS);
+    const handler = HandlerFactory.create('tabs', this);
+
+    handler('get', this.get);
+    handler('getSelected', this.getSelected);
+    handler('getAllInWindow', this.getAllInWindow);
+    handler('query', this.query);
+    handler('update', this.update);
+    handler('reload', this.reload);
+    handler('create', this.create);
+    handler('remove', this.remove);
+
+    handler('getCurrent', this.getCurrent, true);
+    handler('insertCSS', this.insertCSS, true);
   }
 
   onCreateDetails: (tab: Tab, details: chrome.tabs.Tab) => void;
@@ -259,19 +259,19 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
     return this.createDetails(tab);
   };
 
-  private getCurrent = (e: Electron.IpcMainInvokeEvent) => {
+  private getCurrent(e: Electron.IpcMainInvokeEvent) {
     const tab = this.getTabById(e.sender.id);
     if (!tab) return null;
 
     return this.getDetails(tab);
-  };
+  }
 
-  private insertCSS = async (
+  private async insertCSS(
     e: Electron.IpcMainEvent,
     extensionId: string,
     tabId: number,
     details: chrome.tabs.InjectDetails,
-  ) => {
+  ) {
     const tab = this.getTabById(tabId);
     if (!tab) return;
 
@@ -286,7 +286,7 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
     tab.insertCSS(details.code, {
       cssOrigin: details.cssOrigin,
     });
-  };
+  }
 
   private createDetails(tab: Tab): chrome.tabs.Tab {
     const window = getParentWindowOfTab(tab);

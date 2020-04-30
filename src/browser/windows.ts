@@ -1,9 +1,10 @@
-import { ipcMain, BrowserWindow } from 'electron';
+import { BrowserWindow } from 'electron';
 import { EventEmitter } from 'events';
 import { Extensions } from '.';
 import { isBackgroundPage } from '../utils/web-contents';
 import { WINDOW_ID_CURRENT } from '../constants';
 import { sendToExtensionPages } from './background-pages';
+import { HandlerFactory } from './handler-factory';
 
 // Events which can be registered only once
 interface IWindowsEvents {
@@ -32,20 +33,15 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
   constructor() {
     super();
 
-    ipcMain.handle('windows.create', (e, details) => this.create(details));
-    ipcMain.handle('windows.get', (e, id, details) =>
-      id === WINDOW_ID_CURRENT
-        ? this.getCurrent(e, details)
-        : this.get(id, details),
-    );
-    ipcMain.handle('windows.getCurrent', this.getCurrent);
-    ipcMain.handle('windows.getAll', (e, details) => this.getAll(details));
-    ipcMain.handle('windows.update', (e, id, details) =>
-      this.update(id, details),
-    );
-    ipcMain.handle('windows.getLastFocused', (e, details) =>
-      this.getLastFocused(details),
-    );
+    const handler = HandlerFactory.create('windows', this);
+
+    handler('create', this.create);
+    handler('update', this.update);
+    handler('getAll', this.getAll);
+    handler('getLastFocused', this.getLastFocused);
+
+    handler('get', this.getHandler, true);
+    handler('getCurrent', this.getCurrent, true);
   }
 
   onBeforeFocusNextZOrder: (windowId: number) => number;
@@ -161,6 +157,16 @@ export class WindowsAPI extends EventEmitter implements IWindowsEvents {
     return Array.from(this.windows)
       .map((win) => this.getDetailsMatchingGetInfo(win, getInfo))
       .filter(Boolean);
+  }
+
+  private getHandler(
+    event: Electron.IpcMainInvokeEvent,
+    id: number,
+    details: any,
+  ) {
+    return id === WINDOW_ID_CURRENT
+      ? this.getCurrent(event, details)
+      : this.get(id, details);
   }
 
   private getCurrent = (

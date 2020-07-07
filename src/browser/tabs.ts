@@ -137,9 +137,9 @@ export class TabsAPI extends EventEmitter implements ITabsEvents {
   // Deprecated, fallback to chrome.tabs.query
   public getSelected(windowId: number) {
     if (typeof windowId === 'number') {
-      return this.query({ windowId, active: true });
+      return this.query({ windowId, active: true })[0];
     }
-    return this.query({ active: true });
+    return this.query({ active: true })[0];
   }
 
   public query(info: chrome.tabs.QueryInfo = {}) {

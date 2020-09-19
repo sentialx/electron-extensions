@@ -56,6 +56,10 @@ Adds a BrowserWindow to send and observe UI related events such as
 
 List of URLs or glob patterns preventing from injecting `content_scripts` to. For example `[wexond://*]`.
 
+#### `activeTab` number
+
+The ID of the web contents for the current active tab. Your application should set this whenever a tab goes in focus so that it can be reflected in the tab list.
+
 ### Events
 
 #### `set-badge-text`
